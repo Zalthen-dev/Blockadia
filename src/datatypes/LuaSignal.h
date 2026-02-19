@@ -11,6 +11,14 @@
 #define LUA_SIGNAL "LuaSignal"
 #define LUA_CONNECTION "LuaConnection"
 
+// ********************************************************************************
+//
+// SIGNALS DONT WORK
+// I would've tried fixing this but I instead went for implementing the LuaScheduler
+// which well I had a teeny bit more success with
+//
+// ********************************************************************************
+
 struct LuaConnection {
     lua_State* L;
     int funcRef; // reference to Lua function
