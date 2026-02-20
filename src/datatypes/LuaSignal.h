@@ -11,14 +11,6 @@
 #define LUA_SIGNAL "LuaSignal"
 #define LUA_CONNECTION "LuaConnection"
 
-// ********************************************************************************
-//
-// SIGNALS DONT WORK
-// I would've tried fixing this but I instead went for implementing the LuaScheduler
-// which well I had a teeny bit more success with
-//
-// ********************************************************************************
-
 struct LuaConnection {
     lua_State* L;
     int funcRef; // reference to Lua function
@@ -26,13 +18,13 @@ struct LuaConnection {
 
     ~LuaConnection() {
         if (!disconnected) {
-            lua_unref(L, LUA_REGISTRYINDEX);
+            lua_unref(L, funcRef);
         }
     }
 
     void Disconnect() {
         if (!disconnected) {
-            lua_unref(L, LUA_REGISTRYINDEX);
+            lua_unref(L, funcRef);
             disconnected = true;
         }
     }
@@ -40,10 +32,22 @@ struct LuaConnection {
     void Fire(int nargs = 0) {
         if (disconnected) return;
         lua_rawgeti(L, LUA_REGISTRYINDEX, funcRef);
-        if (nargs > 0) lua_insert(L, -1 - nargs);
+
+		if (!lua_isfunction(L, -1)) {
+        	printf("RUNTIME: Registry reference isn't a function\n");
+        	lua_pop(L, 1);
+        	return;
+    	}
+
+        if (nargs > 0) 
+			lua_insert(L, -1 - nargs);
+
         if (lua_pcall(L, nargs, 0, 0) != LUA_OK) {
             const char* err = lua_tostring(L, -1);
-            printf("Lua error in signal: %s\n", err);
+
+			printf("RUNTIME: Lua error in Signal:Fire\n");
+			printf("  Message: %s\n", err);
+
             lua_pop(L, 1);
         }
     }
@@ -54,9 +58,13 @@ struct LuaSignal {
 
     LuaConnection* Connect(lua_State* L, int funcIndex) {
         lua_pushvalue(L, funcIndex);
-        int ref = lua_ref(L, LUA_REGISTRYINDEX);
+        int ref = lua_ref(L, funcIndex);
+		lua_pop(L, 1);
 
-        auto* conn = new LuaConnection{L, ref};
+        auto* conn = new LuaConnection{};
+		conn->L = L;
+		conn->funcRef = ref;
+
         connections.push_back(conn);
         return conn;
     }
@@ -71,11 +79,11 @@ struct LuaSignal {
 };
 
 static LuaConnection* CheckConnection(lua_State* L, int idx) {
-    return (LuaConnection*)luaL_checkudata(L, idx, LUA_CONNECTION);
+	return *(LuaConnection**)luaL_checkudata(L, idx, LUA_CONNECTION);
 }
 
 static LuaSignal* CheckSignal(lua_State* L, int idx) {
-    return (LuaSignal*)luaL_checkudata(L, idx, LUA_SIGNAL);
+	return *(LuaSignal**)luaL_checkudata(L, idx, LUA_SIGNAL);
 }
 
 static void PushSignal(lua_State* L, LuaSignal* sig) {

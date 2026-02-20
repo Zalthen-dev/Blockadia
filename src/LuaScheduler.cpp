@@ -145,6 +145,9 @@ void RegisterTaskAPI(lua_State* L) {
 	lua_pushcfunction(L, l_task_wait, "task.wait"); lua_setfield(L, -2, "wait");
 	//lua_pushcfunction(L, l_task_spawn, "task.spawn"); lua_setfield(L, -2, "spawn");
 	lua_setglobal(L, "task");
+
+	// backwards compatibility
+	lua_pushcfunction(L, l_task_wait, "task.wait"); lua_setglobal(L, "wait");
 }
 
 void LuaScheduler::Step() {

@@ -1,4 +1,3 @@
-local RunService = game:GetService("RunService")
 print("Hello World!")
 
 for i = 1, 100 do
@@ -22,16 +21,14 @@ for i = 1, 100 do
 end
 
 local part = Instance.new("Part")
-part.Size = Vector3.new(10, 10, 10)
+part.Size = Vector3.new(1, 1, 1)
+part.Parent = workspace
 
 local t = 0
 
-print("trying task.wait(1)")
-print(task.wait(1))
-
 while true do
-	local dt = task.wait()
-	t += dt
+	t += task.wait()
 
-	part.Position = Vector3.new(math.cos(t), 0, math.sin(t)) * 50
+	part.Position = Vector3.new(math.cos(t), 0, math.sin(t)) * 10
+	part.Rotation = Vector3.one * math.deg(t)
 end

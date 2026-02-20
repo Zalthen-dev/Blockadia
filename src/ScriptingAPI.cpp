@@ -18,9 +18,9 @@
 #include "objects/Instance.h"
 #include "objects/Folder.h"
 #include "objects/Part.h"
-
-#include "objects/GuiObject.h"
 #include "objects/ScreenGui.h"
+#include "objects/Script.h"
+#include "objects/LocalScript.h"
 
 #include "Game.h"
 #include "services/Workspace.h"
@@ -53,9 +53,52 @@ static int l_Instance_new(lua_State* L) {
 		return 1;
 	}
 
+	if (std::strcmp(key, "Script") == 0) {
+		CreateAndPushObject(Script);
+		return 1;
+	}
+	if (std::strcmp(key, "LocalScript") == 0) {
+		CreateAndPushObject(LocalScript);
+		return 1;
+	}
+
 	luaL_errorL(L, "Could not create instance of type '%s'", key);
 	return 0;
 }
+
+/*
+void RestrictScriptingAPI(lua_State* L) {
+	auto copyField = [&](const char* name) {
+        lua_getfield(L, -2, name);
+        if (!lua_isnil(L, -1)) {
+            lua_setfield(L, -2, name);
+        } else {
+            lua_pop(L, 1);
+        }
+    };
+
+	lua_getglobal(L, "os");
+	if (!lua_istable(L, -1)) {
+		lua_pop(L, 1);
+	} else {
+		copyField("clock");
+		copyField("time");
+		copyField("diffTime");
+		copyField("date");
+
+		lua_setglobal(L, "os");
+		lua_pop(L, 1);
+	}
+
+	lua_getglobal(L, "io");
+	if (!lua_istable(L, -1)) {
+		lua_pop(L, 1);
+	} else {
+		lua_setglobal(L, "io");
+		lua_pop(L, 1);
+	}
+}
+*/
 
 void SetScriptingAPI(lua_State* L) {
 	RegisterTaskAPI(L);
@@ -78,4 +121,9 @@ void SetScriptingAPI(lua_State* L) {
     lua_pushcfunction(L, l_Instance_new, "new"); lua_setfield(L, -2, "new");
 
     lua_setglobal(L, "Instance");
+
+	//RestrictScriptingAPI(L);
+
+	// get rid of IO library (even if i think its not imported)
+	lua_pushnil(L); lua_setglobal(L, "io");
 }

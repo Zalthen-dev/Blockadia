@@ -1,14 +1,18 @@
-> [!WARNING]
+> [!IMPORTANT]
 >
-> Blockadia is broken at the moment, and I don't have any idea on how to fix it
-> 
-> It has to do with the LuaScheduler, specifically it segfaults on the first `lua_resume` call wherever it may be
+> As of 2/19/2026, the Segmentation Fault issue involving the LuaScheduler has been fixed!
 >
-> If you have some knowledge on using Luau with C++, please help out!
+> Yeah I'm kinda shocked messing around with the declaration stuff got it to work
 
 # Blockadia
 
 My 500th unfinished game engine project I'm probably not working on, but hey you can execute one single Luau script
+
+## API
+
+Blockadia has a pretty limited API right now but you can still do plenty of things!
+
+A lot of would-be common methods aren't supported, but expect them to be supported in the future!
 
 ## Build instructions
 

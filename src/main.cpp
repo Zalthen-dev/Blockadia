@@ -118,7 +118,8 @@ int main() {
 		DrawGrid(10, 1.0f);
 
 
-		gRunService->RenderStepped.Fire(1);
+		// TODO: push frameTime and fire with 1 argument once signals are fixed
+		gRunService->RenderStepped.Fire(0);
 		RenderWorkspace();
 
 		EndMode3D();
