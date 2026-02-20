@@ -3,6 +3,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include "objects/BaseScript.h"
+
 #include "lua.h"
 
 struct LuaScheduler; // forward def
@@ -12,6 +14,7 @@ struct LuaThread {
 
 	double wakeTime{0.0};
 	double yieldTime{0.0};
+	bool expectsReturn = false;
 	bool waiting = false;
 
 	LuaScheduler* scheduler;
@@ -26,10 +29,12 @@ struct LuaScheduler {
 	void Step();
 };
 
+extern LuaScheduler gLuaScheduler;
+
 // lua handling
 
 LuaThread* CreateThread(lua_State* L);
-void StartScript(LuaScheduler& sched, int funcIndex);
+void StartScript(LuaScheduler& sched, BaseScript* script);
 
 // lua functions
 

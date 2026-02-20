@@ -21,11 +21,14 @@
 #include "services/StarterGui.h"
 #include "services/RunService.h"
 
+#include "objects/BaseScript.h"
+
 Game* gGame = nullptr;
 Workspace* gWorkspace = nullptr;
 Lighting* gLighting = nullptr;
 StarterGui* gStarterGui = nullptr;
 RunService* gRunService = nullptr;
+BaseScript* gMainScript = nullptr;
 
 LuaScheduler gLuaScheduler;
 
@@ -87,6 +90,9 @@ int main() {
 	gStarterGui = new StarterGui{}; gStarterGui->SetParent(gGame);
 	gRunService = new RunService{}; gRunService->SetParent(gGame);
 
+	gMainScript = new BaseScript{}; gMainScript->SetParent(gWorkspace);
+	gMainScript->Name = "Script";
+
 	lua_State* L = luaL_newstate();
 	luaL_openlibs(L);
 	gLuaScheduler.L = L;
@@ -94,32 +100,9 @@ int main() {
 	SetScriptingAPI(L);
 
 	std::string luauScript = LoadFileText("main.luau");
+	gMainScript->Source = luauScript;
 
-	lua_CompileOptions opts = {};
-	size_t bytecodeSize = 0;
-
-	char* bytecode = luau_compile(
-	    luauScript.data(),
-	    luauScript.size(),
-	    &opts,
-	    &bytecodeSize
-	);
-
-	if (luau_load(L, "main", bytecode, bytecodeSize, 0) != LUA_OK) {
-	    const char* err = lua_tostring(L, -1);
-	    printf("Luau load error: %s\n", err);
-	    lua_pop(L, 1);
-	    free(bytecode);
-
-		CloseWindow();
-	    return 1;
-	}
-
-	free(bytecode);
-
-	StartScript(gLuaScheduler, -1);
-	lua_pop(L, 1);
-
+	StartScript(gLuaScheduler, gMainScript);
 
 	ReadyRenderer();
 	while(!WindowShouldClose()) {
@@ -148,6 +131,9 @@ int main() {
 	}
 
 	UnreadyRenderer();
+
+	gGame->Destroy();
+	
 	lua_close(L);
 	CloseWindow();
 	return 0;
