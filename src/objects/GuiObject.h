@@ -45,11 +45,7 @@ struct GuiObject : Instance {
 	    }
 
 	    if (!strcmp(key, "BackgroundColor3")) {
-	        lua_pushvector(L,
-	            BackgroundColor.x,
-	            BackgroundColor.y,
-	            BackgroundColor.z
-	        );
+			PushColor3(L, BackgroundColor.x, BackgroundColor.y, BackgroundColor.z);
 	        return true;
 	    }
 

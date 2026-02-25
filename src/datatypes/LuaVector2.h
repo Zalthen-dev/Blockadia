@@ -273,3 +273,7 @@ inline void RegisterVector2(lua_State* L) {
 
     lua_setglobal(L, "Vector2");
 }
+
+static Vector2 RaylibVector2FromLuaVector2(LuaVector2 vec) {
+	return {vec.x, vec.y};
+}

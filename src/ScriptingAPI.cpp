@@ -13,6 +13,7 @@
 #include "datatypes/LuaUDim.h"
 #include "datatypes/LuaColor3.h"
 #include "datatypes/LuaSignal.h"
+#include "datatypes/LuaRandom.h"
 
 #include "objects/Frame.h"
 #include "objects/Instance.h"
@@ -110,6 +111,7 @@ void SetScriptingAPI(lua_State* L) {
 	RegisterUDim2(L);
 	RegisterColor3(L);
 	RegisterSignal(L);
+	RegisterRandom(L);
 
 	PushInstance(L, gGame); lua_setglobal(L, "game");
 	PushInstance(L, gGame); lua_setglobal(L, "Game");

@@ -1,3 +1,38 @@
+# 2/24/2026
+
+Signals are now fixed, heck yeah
+
+<!--
+
+Hello, yeah ChatGPT came up with the solution, and also correctly creating signals
+on the C++ side, had to fiddle around with LuaScheduler initialization but it works!
+
+-->
+
+Objects now have their color show
+
+Tried adding textures, they aren't tiled correctly (TODO: use a different texture)
+
+Added `LuaRandom`, which internally uses the Mersenne Twister PRNG for random numbers
+- Access from Luau using `Random`
+- Current methods below, may be expanded
+	- `Random:NextNumber(min: number, max: number)`
+	- `Random:NextInteger(min: number, max: number)`
+	- `Random:NextUnitVector()`
+
+
+Added `DebugVisualService`, incomplete as of right now but allows for drawing simple visuals in an immediate-mode manner
+- Access with `game:GetService("DebugVisualService")`
+- Note that the methods below MUST be called every frame for the visuals to be consistent, using `RunService.PreRender` is the best way to ensure this as it always fires before anything is drawn
+- Current methods below, may be expanded
+	- `DebugVisualService:DrawText(text: string, x: number, y: number, fontSize: number?, color: Color3?)`
+		- `fontSize` defaults to `20`
+		- `color` defaults to `Color3.new(0, 0, 0)`
+	- `DebugVisualService:DrawLine2D(from: Vector2, to: Vector2, color: Color3?)`
+		- `color` defaults to `Color3.new(0, 0, 0)`
+	- `DebugVisualService:DrawLine3D(from: Vector3, to: Vector3, color: Color3?)`
+		- `color` defaults to `Color3.new(0, 0, 0)`
+
 # 2/19/2026
 
 Added History document (you're reading from it!) to keep track of changes I guess

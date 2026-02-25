@@ -35,7 +35,7 @@ void CameraController::StepCamera() {
 	if (IsMouseButtonDown(MOUSE_RIGHT_BUTTON)) {
 		Vector2 mouseDelta = GetMouseDelta();
 		CameraYaw(camera, -mouseDelta.x*cameraRotateSpeed, false);
-        CameraPitch(camera, -mouseDelta.y*cameraRotateSpeed, false, false, false);
+        CameraPitch(camera, -mouseDelta.y*cameraRotateSpeed, true, false, false);
 	}
 
 	float mouseWheelDelta = GetMouseWheelMove();

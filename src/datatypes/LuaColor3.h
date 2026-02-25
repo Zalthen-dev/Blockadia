@@ -1,5 +1,6 @@
 #pragma once
 
+#include <raylib.h>
 #include <cstring>
 
 #include "lua.h"
@@ -31,21 +32,21 @@ static void PushColor3(lua_State* L, float r, float g, float b) {
 }
 
 static int l_Color3_Lerp(lua_State* L) {
-	auto* a = CheckColor3(L, 1);
-    auto* b = CheckColor3(L, 2);
+	LuaColor3* a = CheckColor3(L, 1);
+    LuaColor3* b = CheckColor3(L, 2);
 	float t = luaL_checknumber(L, 3);
 
 	PushColor3(L, 
-		lerpf(a->r, b->r, t),
-		lerpf(a->g, b->g, t), 
-		lerpf(a->b, b->b, t)
+		lerp(a->r, b->r, t),
+		lerp(a->g, b->g, t), 
+		lerp(a->b, b->b, t)
 	);
 	
 	return 1;
 }
 
 static int l_Color3_index(lua_State* L) {
-    auto* c = CheckColor3(L, 1);
+    LuaColor3* c = CheckColor3(L, 1);
     const char* key = luaL_checkstring(L, 2);
 
 	if (std::strcmp(key, "Lerp") == 0) {
@@ -61,15 +62,15 @@ static int l_Color3_index(lua_State* L) {
 }
 
 static int l_Color3_add(lua_State* L) {
-    auto* a = CheckColor3(L, 1);
-    auto* b = CheckColor3(L, 2);
+    LuaColor3* a = CheckColor3(L, 1);
+    LuaColor3* b = CheckColor3(L, 2);
     PushColor3(L, a->r+b->r, a->g+b->g, a->b+b->b);
     return 1;
 }
 
 static int l_Color3_sub(lua_State* L) {
-    auto* a = CheckColor3(L, 1);
-    auto* b = CheckColor3(L, 2);
+    LuaColor3* a = CheckColor3(L, 1);
+    LuaColor3* b = CheckColor3(L, 2);
     PushColor3(L, a->r-b->r, a->g-b->g, a->b-b->b);
     return 1;
 }
@@ -93,9 +94,9 @@ static int l_Color3_fromRGB(lua_State* L) {
 static void RegisterColor3(lua_State* L) {
     luaL_newmetatable(L, LUA_COLOR3);
 
-    lua_pushcfunction(L, l_Color3_index, "index"); lua_setfield(L, -2, "__index");
-    lua_pushcfunction(L, l_Color3_add, "add");     lua_setfield(L, -2, "__add");
-    lua_pushcfunction(L, l_Color3_sub, "sub");     lua_setfield(L, -2, "__sub");
+    lua_pushcfunction(L, l_Color3_index, "Color3.__index"); lua_setfield(L, -2, "__index");
+    lua_pushcfunction(L, l_Color3_add, "Color3.__add");     lua_setfield(L, -2, "__add");
+    lua_pushcfunction(L, l_Color3_sub, "Color3.__sub");     lua_setfield(L, -2, "__sub");
 
     lua_pop(L,1);
 
@@ -105,4 +106,22 @@ static void RegisterColor3(lua_State* L) {
     lua_pushcfunction(L, l_Color3_fromRGB, "fromRGB"); lua_setfield(L, -2, "fromRGB");
 
     lua_setglobal(L, "Color3");
+}
+
+static LuaColor3 CreateColor3(float r, float g, float b) {
+	return {
+		r = r,
+		g = g,
+		b = b
+	};
+}
+
+static Color RaylibColorFromLuauColor3(LuaColor3 color3) {
+	Color clr;
+	clr.r = static_cast<unsigned char>(color3.r*255);
+	clr.g = static_cast<unsigned char>(color3.g*255);
+	clr.b = static_cast<unsigned char>(color3.b*255);
+	clr.a = 255;
+
+	return clr;
 }

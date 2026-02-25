@@ -1,17 +1,24 @@
 #pragma once
 
+#include "LuaScheduler.h"
 #include "Service.h"
 
 #include "datatypes/LuaSignal.h"
+#include <memory>
+
+extern LuaScheduler gLuaScheduler;
 
 struct RunService : Service {
-	LuaSignal RenderStepped; // PreRender
-    LuaSignal Stepped;
-    LuaSignal Heartbeat; // PostSimulation
+	std::shared_ptr<LuaSignal> RenderStepped;
+    std::shared_ptr<LuaSignal> Stepped;
+    std::shared_ptr<LuaSignal> Heartbeat;
 
-    RunService() {
-        Name = "RunService";
-    }
+    RunService(): RenderStepped(std::make_shared<LuaSignal>(gLuaScheduler.L)),
+      Stepped(std::make_shared<LuaSignal>(gLuaScheduler.L)), 
+	  Heartbeat(std::make_shared<LuaSignal>(gLuaScheduler.L)) 
+	{
+	    Name = "RunService";
+	}
 
     const char* ClassName() const override {
         return "RunService";
@@ -19,17 +26,17 @@ struct RunService : Service {
 
 	bool LuaGet(lua_State* L, const char* key) override {
 		if (std::strcmp(key, "RenderStepped") == 0 || std::strcmp(key, "PreRender") == 0) {
-			PushSignal(L, &RenderStepped);
+			PushSignal(L, RenderStepped);
 			return true;
 		}
 
 		if (std::strcmp(key, "Stepped") == 0 || std::strcmp(key, "PreSimulation") == 0) {
-			PushSignal(L, &Stepped);
+			PushSignal(L, Stepped);
 			return true;
 		}
 
 		if (std::strcmp(key, "Heartbeat") == 0 || std::strcmp(key, "PostSimulation") == 0) {
-			PushSignal(L, &Heartbeat);
+			PushSignal(L, Heartbeat);
 			return true;
 		}
 		

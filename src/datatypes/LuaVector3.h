@@ -283,3 +283,7 @@ inline void RegisterVector3(lua_State* L) {
 
     lua_setglobal(L, "Vector3");
 }
+
+static Vector3 RaylibVector3FromLuaVector3(LuaVector3 vec) {
+	return {vec.x, vec.y, vec.z};
+}

@@ -1,8 +1,11 @@
 #pragma once
 
-#include <cstring>
-#include <stdio.h>
+#include <cassert>
+#include <cstdio>
+#include <functional>
+#include <memory>
 #include <vector>
+#include <cstring>
 
 #include "lua.h"
 #include "lualib.h"
@@ -11,131 +14,174 @@
 #define LUA_SIGNAL "LuaSignal"
 #define LUA_CONNECTION "LuaConnection"
 
-struct LuaConnection {
-    lua_State* L;
-    int funcRef; // reference to Lua function
-    bool disconnected = false;
-
-    ~LuaConnection() {
-        if (!disconnected) {
-            lua_unref(L, funcRef);
-        }
-    }
-
-    void Disconnect() {
-        if (!disconnected) {
-            lua_unref(L, funcRef);
-            disconnected = true;
-        }
-    }
-
-    void Fire(int nargs = 0) {
-        if (disconnected) return;
-        lua_rawgeti(L, LUA_REGISTRYINDEX, funcRef);
-
-		if (!lua_isfunction(L, -1)) {
-        	printf("RUNTIME: Registry reference isn't a function\n");
-        	lua_pop(L, 1);
-        	return;
-    	}
-
-        if (nargs > 0) 
-			lua_insert(L, -1 - nargs);
-
-        if (lua_pcall(L, nargs, 0, 0) != LUA_OK) {
-            const char* err = lua_tostring(L, -1);
-
-			printf("RUNTIME: Lua error in Signal:Fire\n");
-			printf("  Message: %s\n", err);
-
-            lua_pop(L, 1);
-        }
-    }
-};
-
+// --- LuaSignal object ---
 struct LuaSignal {
-    std::vector<LuaConnection*> connections;
+    struct Listener {
+        int callbackRef = LUA_NOREF;
+        bool connected = true;
+        bool once = false;
+    };
 
-    LuaConnection* Connect(lua_State* L, int funcIndex) {
-        lua_pushvalue(L, funcIndex);
-        int ref = lua_ref(L, funcIndex);
-		lua_pop(L, 1);
+    lua_State* Lm;
+    std::vector<Listener> listeners;
 
-        auto* conn = new LuaConnection{};
-		conn->L = L;
-		conn->funcRef = ref;
-
-        connections.push_back(conn);
-        return conn;
-    }
-
-    void Fire(int nargs = 0) {
-        // copy to avoid invalidation if connections disconnect during fire
-        auto copy = connections;
-        for (auto* conn : copy) {
-            conn->Fire(nargs);
+    explicit LuaSignal(lua_State* mainState) : Lm(mainState) {}
+    ~LuaSignal() {
+        for (auto& l : listeners) {
+            if (l.callbackRef != LUA_NOREF) {
+                lua_unref(Lm, l.callbackRef);
+            }
         }
     }
+
+    void Fire(lua_State* src, int firstArgIdx, int argc) {
+        // Copy listeners to avoid modification during iteration
+        auto snapshot = listeners;
+        for (auto& l : snapshot) {
+            if (!l.connected || l.callbackRef == LUA_NOREF) continue;
+
+            lua_rawgeti(Lm, LUA_REGISTRYINDEX, l.callbackRef);
+
+            for (int i = 0; i < argc; ++i) {
+                lua_pushvalue(src, firstArgIdx + i);
+                lua_xmove(src, Lm, 1);
+            }
+
+            if (lua_pcall(Lm, argc, 0, 0) != LUA_OK) {
+                const char* err = lua_tostring(Lm, -1);
+                printf("Signal Error: %s\n", err);
+                lua_pop(Lm, 1);
+            }
+
+            if (l.once) {
+                Disconnect(l.callbackRef);
+            }
+        }
+    }
+
+    void Disconnect(int ref) {
+        for (auto& l : listeners) {
+            if (l.callbackRef == ref) {
+                if (l.connected) {
+                    l.connected = false;
+                    lua_unref(Lm, l.callbackRef);
+                    l.callbackRef = LUA_NOREF;
+                }
+                break;
+            }
+        }
+    }
+
+	bool luaSide{false};
 };
 
-static LuaConnection* CheckConnection(lua_State* L, int idx) {
-	return *(LuaConnection**)luaL_checkudata(L, idx, LUA_CONNECTION);
+struct LuaSignalUD {
+    std::shared_ptr<LuaSignal> sig;
+};
+
+inline LuaSignalUD* CheckSignal(lua_State* L, int idx) {
+    return static_cast<LuaSignalUD*>(luaL_checkudata(L, idx, LUA_SIGNAL));
 }
 
-static LuaSignal* CheckSignal(lua_State* L, int idx) {
-	return *(LuaSignal**)luaL_checkudata(L, idx, LUA_SIGNAL);
-}
-
-static void PushSignal(lua_State* L, LuaSignal* sig) {
-    LuaSignal** udata = (LuaSignal**)lua_newuserdata(L, sizeof(LuaSignal*));
-    *udata = sig;
-
+inline void PushSignal(lua_State* L, std::shared_ptr<LuaSignal> sig) {
+    void* mem = lua_newuserdata(L, sizeof(LuaSignalUD));
+    new (mem) LuaSignalUD{ sig };
     luaL_getmetatable(L, LUA_SIGNAL);
     lua_setmetatable(L, -2);
 }
 
+static int l_Signal_gc(lua_State* L) {
+    auto* ud = CheckSignal(L, 1);
+    if (ud) ud->~LuaSignalUD();
+    return 0;
+}
+
 static int l_Signal_Connect(lua_State* L) {
-    LuaSignal* sig = CheckSignal(L, 1);
+    auto* ud = CheckSignal(L, 1);
     luaL_checktype(L, 2, LUA_TFUNCTION);
 
-    LuaConnection* conn = sig->Connect(L, 2);
+	printf("Is signal Luau side? %d\n", ud->sig->luaSide);
+	printf("Is pointer valid? %d \n", ud->sig->Lm != nullptr);
+    lua_pushvalue(L, 2);
+    lua_xmove(L, ud->sig->Lm, 1);
+    int ref = lua_ref(ud->sig->Lm, -1);
 
-    // push a userdata representing the connection
-    LuaConnection** udata = (LuaConnection**)lua_newuserdata(L, sizeof(LuaConnection*));
-    *udata = conn;
+    ud->sig->listeners.push_back({
+        .callbackRef = ref,
+        .connected = true,
+        .once = false
+    });
 
+    void* mem = lua_newuserdata(L, sizeof(int));
+    new (mem) int(ref);
     luaL_getmetatable(L, LUA_CONNECTION);
     lua_setmetatable(L, -2);
 
     return 1;
 }
 
-static int l_Signal_index(lua_State* L) {
-	LuaSignal* signal = CheckSignal(L, 1);
-	const char* key = luaL_checkstring(L, 2);
-
-	if (std::strcmp(key, "Connect") == 0) {
-		lua_pushcfunction(L, l_Signal_Connect, "Connect");
-		return 1;
-	}
-
-	lua_pushnil(L);
-	return 1;
-}
-
-static int l_Connection_Disconnect(lua_State* L) {
-    LuaConnection* conn = CheckConnection(L, 1);
-    conn->Disconnect();
+static int l_Signal_Fire(lua_State* L) {
+    auto* ud = CheckSignal(L, 1);
+    int argc = lua_gettop(L) - 1;
+    ud->sig->Fire(L, 2, argc);
     return 0;
 }
 
-static void RegisterSignal(lua_State* L) {
-	luaL_newmetatable(L, LUA_SIGNAL);
-	//lua_pushcfunction(L, l_Signal_Connect, "connect"); lua_setfield(L, -2, "Connect");
-	lua_pushcfunction(L, l_Signal_index, "index"); lua_setfield(L, -2, "__index");
-	lua_pop(L,1);
+static int l_Signal_index(lua_State* L) {
+    auto* ud = CheckSignal(L, 1);
+    const char* key = luaL_checkstring(L, 2);
 
-	luaL_newmetatable(L, LUA_CONNECTION);
-	lua_pushcfunction(L, l_Connection_Disconnect, "disconnect"); lua_setfield(L, -2, "Disconnect");
-	lua_pop(L,1);
+    if (std::strcmp(key, "Connect") == 0) {
+        lua_pushcfunction(L, l_Signal_Connect, "Signal:Connect");
+        return 1;
+    }
+    if (std::strcmp(key, "Fire") == 0) {
+        lua_pushcfunction(L, l_Signal_Fire, "Signal:Fire");
+        return 1;
+    }
+
+    lua_pushnil(L);
+    return 1;
+}
+
+static int l_Signal_new(lua_State* L) {
+    auto sig = std::make_shared<LuaSignal>(L);
+	sig->luaSide = true;
+
+    void* mem = lua_newuserdata(L, sizeof(LuaSignalUD));
+    new (mem) LuaSignalUD{ sig };
+
+    luaL_getmetatable(L, LUA_SIGNAL);
+    lua_setmetatable(L, -2);
+    return 1;
+}
+
+inline void FireSignal(const std::shared_ptr<LuaSignal>& sig, std::function<void(lua_State*)> pushArgs) {
+    lua_State* L = sig->Lm;
+    int base = lua_gettop(L);
+
+    // Push arguments
+    pushArgs(L);
+
+    int argc = lua_gettop(L) - base;
+
+    // Fire using same stack as source
+    sig->Fire(L, base + 1, argc);
+
+    // Clean stack
+    lua_settop(L, base);
+}
+
+// --- register ---
+static void RegisterSignal(lua_State* L) {
+    // Signal metatable
+    luaL_newmetatable(L, LUA_SIGNAL);
+    lua_pushcfunction(L, l_Signal_index, "__index"); lua_setfield(L, -2, "__index");
+    lua_pushcfunction(L, l_Signal_gc, "__gc"); lua_setfield(L, -2, "__gc");
+    lua_pop(L, 1);
+
+    // Signal constructor
+    lua_newtable(L);
+    lua_pushcfunction(L, l_Signal_new, "new"); lua_setfield(L, -2, "new");
+    lua_setglobal(L, "Signal");
 }

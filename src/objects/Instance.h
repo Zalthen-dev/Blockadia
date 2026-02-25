@@ -33,6 +33,15 @@ struct Instance {
 
     virtual const char* ClassName() const = 0;
 
+	Instance* FindFirstChild(const char* name) {
+		for (Instance* child : Children) {
+			if (std::strcmp(child->Name.data(), name) == 0)
+				return child;
+		}
+
+		return nullptr;
+	}
+
 	Instance* FindFirstChildOfClass(const char* className) {
 		for (Instance* child : Children) {
 			if (std::strcmp(child->ClassName(), className) == 0)
@@ -137,6 +146,13 @@ struct Instance {
             lua_pushstring(L, ClassName());
             return true;
         }
+
+		// getting instance
+		Instance* childInstance = FindFirstChild(key);
+		if (childInstance) {
+			PushInstance(L, childInstance);
+			return true;
+		}
 
         return false;
     }
