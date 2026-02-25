@@ -60,7 +60,7 @@ RunService.PreRender:Connect(function(deltaTime)
 	part.Position = origin + Vector3.new(math.cos(t), 0, math.sin(t)) * 10
 	part.Rotation = Vector3.one * math.deg(t)
 
-	DebugVisualService:DrawText("FPS: "..math.floor(1/deltaTime), 50, 50)
+	DebugVisualService:DrawText("FPS: "..math.round(1/deltaTime), 50, 50)
 	DebugVisualService:DrawText("There's already an FPS counter", 50, 70)
 	DebugVisualService:DrawText("Example text", 50, 90)
 

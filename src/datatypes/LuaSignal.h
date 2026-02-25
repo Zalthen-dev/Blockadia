@@ -100,8 +100,6 @@ static int l_Signal_Connect(lua_State* L) {
     auto* ud = CheckSignal(L, 1);
     luaL_checktype(L, 2, LUA_TFUNCTION);
 
-	printf("Is signal Luau side? %d\n", ud->sig->luaSide);
-	printf("Is pointer valid? %d \n", ud->sig->Lm != nullptr);
     lua_pushvalue(L, 2);
     lua_xmove(L, ud->sig->Lm, 1);
     int ref = lua_ref(ud->sig->Lm, -1);
@@ -160,15 +158,11 @@ inline void FireSignal(const std::shared_ptr<LuaSignal>& sig, std::function<void
     lua_State* L = sig->Lm;
     int base = lua_gettop(L);
 
-    // Push arguments
     pushArgs(L);
 
     int argc = lua_gettop(L) - base;
-
-    // Fire using same stack as source
     sig->Fire(L, base + 1, argc);
 
-    // Clean stack
     lua_settop(L, base);
 }
 
