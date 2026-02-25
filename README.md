@@ -1,9 +1,3 @@
-> [!IMPORTANT]
->
-> As of 2/19/2026, the Segmentation Fault issue involving the LuaScheduler has been fixed!
->
-> Yeah I'm kinda shocked messing around with the declaration stuff got it to work
-
 # Blockadia
 
 My 500th unfinished game engine project I'm probably not working on, but hey you can execute one single Luau script
