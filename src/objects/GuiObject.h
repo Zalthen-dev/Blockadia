@@ -16,6 +16,7 @@ struct GuiObject : Instance {
 
     Vector3 BackgroundColor{1, 1, 1};
     float BackgroundTransparency{0.0f};
+	float Rotation{0.f};
 
     bool Visible{true};
 
@@ -29,73 +30,85 @@ struct GuiObject : Instance {
     }
 
 	bool LuaGet(lua_State* L, const char* key) override {
-	    if (!strcmp(key, "Size")) {
-	        PushUDim2(L, Size.x, Size.y);
-	        return true;
-	    }
+		if (!strcmp(key, "Size")) {
+			PushUDim2(L, Size.x, Size.y);
+			return true;
+		}
 
-	    if (!strcmp(key, "Position")) {
-	        PushUDim2(L, Position.x, Position.y);
-	        return true;
-	    }
+		if (!strcmp(key, "Position")) {
+		    PushUDim2(L, Position.x, Position.y);
+		    return true;
+		}
 
-	    if (!strcmp(key, "AnchorPoint")) {
-	        PushVector2(L, AnchorPoint.x, AnchorPoint.y);
-	        return true;
-	    }
+		if (!strcmp(key, "AnchorPoint")) {
+		    PushVector2(L, AnchorPoint.x, AnchorPoint.y);
+		    return true;
+		}
 
 	    if (!strcmp(key, "BackgroundColor3")) {
 			PushColor3(L, BackgroundColor.x, BackgroundColor.y, BackgroundColor.z);
 	        return true;
 	    }
 
-	    if (!strcmp(key, "BackgroundTransparency")) {
-	        lua_pushnumber(L, BackgroundTransparency);
-	        return true;
-	    }
+		if (!strcmp(key, "BackgroundTransparency")) {
+			lua_pushnumber(L, BackgroundTransparency);
+			return true;
+		}
 
-	    if (!strcmp(key, "Visible")) {
-	        lua_pushboolean(L, Visible);
-	        return true;
-	    }
+		if (!strcmp(key, "Rotation")) {
+			lua_pushnumber(L, Rotation);
+			return true;
+		}
 
-	    return Instance::LuaGet(L, key);
+		if (!strcmp(key, "Visible")) {
+			lua_pushboolean(L, Visible);
+			return true;
+		}
+
+		return Instance::LuaGet(L, key);
 	}
 
 	bool LuaSet(lua_State* L, const char* key, int idx) override {
-	    if (!strcmp(key, "Size")) {
-	        Size = *CheckUDim2(L, idx);
-	        return true;
-	    }
+		if (!strcmp(key, "Size")) {
+			Size = *CheckUDim2(L, idx);
+			return true;
+		}
 
-	    if (!strcmp(key, "Position")) {
-	        Position = *CheckUDim2(L, idx);
-	        return true;
-	    }
+		if (!strcmp(key, "Position")) {
+			Position = *CheckUDim2(L, idx);
+			return true;
+		}
 
-	    if (!strcmp(key, "AnchorPoint")) {
-	        auto* v = CheckVector2(L, idx);
-	        AnchorPoint = { v->x, v->y };
-	        return true;
-	    }
+		if (!strcmp(key, "AnchorPoint")) {
+			auto* v = CheckVector2(L, idx);
+			AnchorPoint = { v->x, v->y };
+			return true;
+		}
 
-	    if (!strcmp(key, "BackgroundColor3")) {
+		if (!strcmp(key, "BackgroundColor3")) {
 			LuaColor3* clr = CheckColor3(L, idx);
 			BackgroundColor = {clr->r, clr->g, clr->b};
 
-	        return true;
-	    }
+			return true;
+		}
 
-	    if (!strcmp(key, "BackgroundTransparency")) {
-	        BackgroundTransparency = std::clamp((float)luaL_checknumber(L, idx), 0.0f, 1.0f);
-	        return true;
-	    }
+		if (!strcmp(key, "BackgroundTransparency")) {
+			BackgroundTransparency = std::clamp((float)luaL_checknumber(L, idx), 0.0f, 1.0f);
+			return true;
+		}
 
-	    if (!strcmp(key, "Visible")) {
-	        Visible = lua_toboolean(L, idx);
-	        return true;
-	    }
+		if (!strcmp(key, "Rotation")) {
+			Rotation = luaL_checknumber(L, idx);
+			return true;
+		}
 
-	    return Instance::LuaSet(L, key, idx);
+		if (!strcmp(key, "Visible")) {
+			Visible = lua_toboolean(L, idx);
+			return true;
+		}
+
+		return Instance::LuaSet(L, key, idx);
 	}
+
+	virtual void Draw(Rectangle rect, Color color) {}
 };

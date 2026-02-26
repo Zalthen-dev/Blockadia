@@ -1,3 +1,20 @@
+# 2/25/2026
+
+Added new object, `TextLabel`, you can set text and text color
+
+Extended `DebugVisualService` with two new functions, and modified some functions
+- New functions
+	- `DebugVisualService:DrawRectangle(size: UDim2, pos: UDim2, color: Color3?, transparency: number?)`
+		- `color` defaults to `Color3.new(0, 0, 0)`
+		- `transparency` defaults to `0`
+	- `DebugVisualService:DrawRectangleOutline(size: UDim2, pos: UDim2, color: Color3?, transparency: number?, thickness: number?)`
+		- `color` defaults to `Color3.new(0, 0, 0)`
+		- `transparency` defaults to `0`
+		- `thickness` defaults to `1`
+- Modified functions (the optional parameter defaults are still the same as before)
+	- `DebugVisualService:DrawText(text: string, pos: UDim2, color: Color3? fontSize: number?)`
+	- `DebugVisualService:DrawLine2D(from: UDim2, to: UDim2, color: Color3?)`
+
 # 2/24/2026
 
 Signals are now fixed, heck yeah
@@ -9,9 +26,11 @@ on the C++ side, had to fiddle around with LuaScheduler initialization but it wo
 
 -->
 
-Objects now have their color show
+Parts now have their color show
 
 Tried adding textures, they aren't tiled correctly (TODO: use a different texture)
+
+Frames can now be rotated
 
 Added `LuaRandom`, which internally uses the Mersenne Twister PRNG for random numbers
 - Access from Luau using `Random`
@@ -19,7 +38,6 @@ Added `LuaRandom`, which internally uses the Mersenne Twister PRNG for random nu
 	- `Random:NextNumber(min: number, max: number)`
 	- `Random:NextInteger(min: number, max: number)`
 	- `Random:NextUnitVector()`
-
 
 Added `DebugVisualService`, incomplete as of right now but allows for drawing simple visuals in an immediate-mode manner
 - Access with `game:GetService("DebugVisualService")`

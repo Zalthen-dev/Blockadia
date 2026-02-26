@@ -195,43 +195,40 @@ void RenderWorkspace() {
 }
 
 void RenderGuiObject(GuiObject* object, const Vector2& parentPos, const Vector2& parentSize) {
-    if (!object->Visible)
-        return;
+	if (!object->Visible) return;
 
-    // Compute layout
-    Vector2 absSize = ComputeAbsoluteSize(object->Size, parentSize);
-    Vector2 absPos  = ComputeAbsolutePosition(object->Position, parentSize, absSize, object->AnchorPoint);
+	Vector2 absSize = ComputeAbsoluteSize(object->Size, parentSize);
+	Vector2 absPos  = ComputeAbsolutePosition(object->Position, parentSize, absSize, object->AnchorPoint);
 
-    // Final position in screen space
-    Vector2 drawPos = {
-        parentPos.x + absPos.x,
-        parentPos.y + absPos.y
-    };
+	Vector2 drawPos = {
+		parentPos.x + absPos.x,
+		parentPos.y + absPos.y
+	};
 
-    // Draw background
-    float alpha = 1.0f - object->BackgroundTransparency;
-    Color color = {
-        (unsigned char)(object->BackgroundColor.x * 255),
-        (unsigned char)(object->BackgroundColor.y * 255),
-        (unsigned char)(object->BackgroundColor.z * 255),
-        (unsigned char)(alpha * 255)
-    };
+	float alpha = 1.0f - object->BackgroundTransparency;
+	Color color = {
+		(unsigned char)(object->BackgroundColor.x * 255),
+		(unsigned char)(object->BackgroundColor.y * 255),
+		(unsigned char)(object->BackgroundColor.z * 255),
+		(unsigned char)(alpha * 255)
+	};
 
-    DrawRectangle(
-        (int)drawPos.x,
-        (int)drawPos.y,
-        (int)absSize.x,
-        (int)absSize.y,
-        color
-    );
+	Rectangle drawRectangle = {
+		drawPos.x,
+		drawPos.y,
+		absSize.x,
+		absSize.y,
+	};
 
-    // Render children
-    for (Instance* childInst : object->Children) {
-        GuiObject* child = dynamic_cast<GuiObject*>(childInst);
-        if (child && child->Visible) {
-            RenderGuiObject(child, drawPos, absSize);
-        }
-    }
+	object->Draw(drawRectangle, color);
+
+	// Render children
+	for (Instance* childInst : object->Children) {
+		GuiObject* child = dynamic_cast<GuiObject*>(childInst);
+		if (child && child->Visible) {
+			RenderGuiObject(child, drawPos, absSize);
+		}
+	}
 }
 
 void RenderScreenGui(ScreenGui* screenGui) {

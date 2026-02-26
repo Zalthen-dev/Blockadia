@@ -24,6 +24,7 @@
 #include "objects/LocalScript.h"
 
 #include "Game.h"
+#include "objects/TextLabel.h"
 #include "services/Workspace.h"
 
 extern Game* gGame;
@@ -51,6 +52,11 @@ static int l_Instance_new(lua_State* L) {
 
 	if (std::strcmp(key, "Frame") == 0) {
 		CreateAndPushObject(Frame);
+		return 1;
+	}
+
+	if (std::strcmp(key, "TextLabel") == 0) {
+		CreateAndPushObject(TextLabel);
 		return 1;
 	}
 
