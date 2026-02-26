@@ -1,4 +1,4 @@
-#include "datatypes/LuaSignal.h"
+#include "assets/Icon.h"
 #include "raylib.h"
 
 #include "lua.h"
@@ -15,6 +15,8 @@
 #include "raymath.h"
 
 #include "LuaScheduler.h"
+
+#include "datatypes/LuaSignal.h"
 
 #include "Game.h"
 #include "services/Service.h"
@@ -47,6 +49,9 @@ int main() {
 	InitWindow(1600, 900, "Blockadia");
 	SetTargetFPS(120);
 
+	Image icon = LoadImageFromMemory(".png", icon_data, 534);
+	SetWindowIcon(icon);
+
 	Camera3D camera;
 	camera.position = {0, 5, -5};
 	camera.target = {0, 5, 0};
@@ -60,8 +65,6 @@ int main() {
 	lua_State* L = luaL_newstate();
 	luaL_openlibs(L);
 	gLuaScheduler.L = L;
-
-	
 
 	gGame = new Game{};
 

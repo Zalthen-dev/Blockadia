@@ -1,14 +1,46 @@
-# Blockadia
+# Blockadia [ DEMO ]
+<img src="repo/BlockadiaCard.png"/>
 
-My 500th unfinished game engine project I'm probably not working on, but hey you can execute one single Luau script
+The Game Engine built with freedom and ease-of-use in mind <br>
+Build games big and small with Luau, easy to learn and capable <br>
 
 ## API
 
-Blockadia has a pretty limited API right now but you can still do plenty of things!
+Blockadia has a relatively small API right now but expect additions soon! If you know how to code, you can help out by creating a pull request!
 
-A lot of would-be common methods aren't supported, but expect them to be supported in the future!
+Even with this API you can do a lot of things! Here's a quick overview of the API
+- Services
+	- `Workspace`
+	- `Lighting`
+	- `StarterGui`
+	- `RunService`
+	- `DebugVisualService`
+- Libraries
+	- `task`
+	- `Color3`
+	- `Random`
+	- `Signal`
+	- `UDim` & `UDim2`
+	- `Vector2` & `Vector3`
+- Objects (creatable from a script)
+	- `Part`
+	- `Sound` (untested)
+	- `Folder`
+	- `ScreenGui`
+	- `Frame`
+	- `TextGui`
+	- `Script`
+	- `LocalScript`
 
-## Build instructions
+# How to Use
+
+## Documentation
+
+Documentation has not yet been started, but you can help out with documentation!
+
+If you want to help with documentation, most methods and libraries are used in `main.luau` with short examples!
+
+## Building from the Source
 
 1. Clone repository
 ```bash

@@ -1,5 +1,8 @@
 # 2/25/2026
 
+Improved the README and also added an Icon & card (is that what they're called? Well it has the logo and name)
+- Font used in the card is [Batman Forever](https://www.dafont.com/batman-forever.font) (pretty good font if you ask me)
+
 Added new object, `TextLabel`, you can set text and text color
 
 Extended `DebugVisualService` with two new functions, and modified some functions
@@ -14,6 +17,8 @@ Extended `DebugVisualService` with two new functions, and modified some function
 - Modified functions (the optional parameter defaults are still the same as before)
 	- `DebugVisualService:DrawText(text: string, pos: UDim2, color: Color3? fontSize: number?)`
 	- `DebugVisualService:DrawLine2D(from: UDim2, to: UDim2, color: Color3?)`
+
+Added window icon, it's included when the program is compiled
 
 # 2/24/2026
 
