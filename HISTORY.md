@@ -5,6 +5,11 @@ You can now choose between different Luau scripts to execute in a simple Loader 
 
 Sounds have been fixed, they now play correctly
 
+Added `tick()` function, return value is identical to raylib `GetTime()`
+
+Added `Shape` property to instance `Part` which lets you change the shape that is rendered
+- Right now there's only one extra shape, `Ball`, expect there to be more soon!
+
 Extended `DebugVisualService` with two new functions, and changed how draw commands are drawn
 - Draw commands are now drawn in the order they are called in, independent of what kind of function was called
 - New functions
