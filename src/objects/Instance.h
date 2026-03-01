@@ -31,7 +31,9 @@ struct Instance {
 
     virtual ~Instance() = default;
 
-    virtual const char* ClassName() const = 0;
+    virtual const char* ClassName() const {
+		return "Instance";
+	}
 
 	Instance* FindFirstChild(const char* name) {
 		for (Instance* child : Children) {

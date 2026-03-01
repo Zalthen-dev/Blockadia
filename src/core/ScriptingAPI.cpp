@@ -24,19 +24,26 @@
 #include "objects/LocalScript.h"
 
 #include "Game.h"
+#include "objects/Sound.h"
 #include "objects/TextLabel.h"
+#include "raylib.h"
 #include "services/Workspace.h"
 
 extern Game* gGame;
 extern Workspace* gWorkspace;
 
-#define CreateAndPushObject(type) type* obj = new type{}; PushInstance(L, obj)
+#define CreateAndPushObject(type) type* obj = new type{}; obj->Name = obj->ClassName(); PushInstance(L, obj)
 
 static int l_Instance_new(lua_State* L) {
 	const char* key = luaL_checkstring(L, 1);
 
 	if (std::strcmp(key, "Part") == 0) {
 		CreateAndPushObject(Part);
+		return 1;
+	}
+
+	if (std::strcmp(key, "Sound") == 0) {
+		CreateAndPushObject(ObjectSound);
 		return 1;
 	}
 
@@ -71,6 +78,11 @@ static int l_Instance_new(lua_State* L) {
 
 	luaL_errorL(L, "Could not create instance of type '%s'", key);
 	return 0;
+}
+
+static int l_Time(lua_State* L) {
+	lua_pushnumber(L, GetTime());
+	return 1;
 }
 
 /*
@@ -126,11 +138,14 @@ void SetScriptingAPI(lua_State* L) {
 
     lua_newtable(L);
 
-    lua_pushcfunction(L, l_Instance_new, "new"); lua_setfield(L, -2, "new");
+    lua_pushcfunction(L, l_Instance_new, "Instance.new"); lua_setfield(L, -2, "new");
+    
 
     lua_setglobal(L, "Instance");
 
 	//RestrictScriptingAPI(L);
+
+	lua_pushcfunction(L, l_Time, "time"); lua_setglobal(L, "time");
 
 	// get rid of IO library (even if i think its not imported)
 	lua_pushnil(L); lua_setglobal(L, "io");

@@ -9,6 +9,8 @@
 #include "datatypes/LuaColor3.h"
 
 struct GuiObject : Instance {
+	std::string name = "GuiObject";
+
     LuaUDim2 Size;
     LuaUDim2 Position;
 

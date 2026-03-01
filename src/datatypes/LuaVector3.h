@@ -261,14 +261,15 @@ static int l_Vector3_unm(lua_State* L) {
 inline void RegisterVector3(lua_State* L) {
     luaL_newmetatable(L, "LuaVector3");
 
-    lua_pushcfunction(L, l_Vector3_index, "index"); lua_setfield(L, -2, "__index");
-    lua_pushcfunction(L, l_Vector3_newindex, "newindex"); lua_setfield(L, -2, "__newindex");
-	lua_pushcfunction(L, l_Vector3_eq, "eq"); lua_setfield(L, -2, "__eq");
-	lua_pushcfunction(L, l_Vector3_tostring, "tostring"); lua_setfield(L, -2, "__tostring");
-	lua_pushcfunction(L, l_Vector3_add, "add"); lua_setfield(L, -2, "__add");
-	lua_pushcfunction(L, l_Vector3_sub, "sub"); lua_setfield(L, -2, "__sub");
-	lua_pushcfunction(L, l_Vector3_mul, "mul"); lua_setfield(L, -2, "__mul");
-	lua_pushcfunction(L, l_Vector3_div, "div"); lua_setfield(L, -2, "__div");
+    lua_pushcfunction(L, l_Vector3_index, "Vector3.__index"); lua_setfield(L, -2, "__index");
+    lua_pushcfunction(L, l_Vector3_newindex, "Vector3.__newindex"); lua_setfield(L, -2, "__newindex");
+	lua_pushcfunction(L, l_Vector3_eq, "Vector3.__eq"); lua_setfield(L, -2, "__eq");
+	lua_pushcfunction(L, l_Vector3_tostring, "Vector3.__tostring"); lua_setfield(L, -2, "__tostring");
+	lua_pushcfunction(L, l_Vector3_add, "Vector3.__add"); lua_setfield(L, -2, "__add");
+	lua_pushcfunction(L, l_Vector3_sub, "Vector3.__sub"); lua_setfield(L, -2, "__sub");
+	lua_pushcfunction(L, l_Vector3_mul, "Vector3.__mul"); lua_setfield(L, -2, "__mul");
+	lua_pushcfunction(L, l_Vector3_div, "Vector3.__div"); lua_setfield(L, -2, "__div");
+	lua_pushcfunction(L, l_Vector3_unm, "Vector3.__unm"); lua_setfield(L, -2, "__unm");
 
     lua_pop(L, 1);
 

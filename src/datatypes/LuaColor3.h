@@ -95,8 +95,8 @@ static void RegisterColor3(lua_State* L) {
     luaL_newmetatable(L, LUA_COLOR3);
 
     lua_pushcfunction(L, l_Color3_index, "Color3.__index"); lua_setfield(L, -2, "__index");
-    lua_pushcfunction(L, l_Color3_add, "Color3.__add");     lua_setfield(L, -2, "__add");
-    lua_pushcfunction(L, l_Color3_sub, "Color3.__sub");     lua_setfield(L, -2, "__sub");
+    lua_pushcfunction(L, l_Color3_add, "Color3.__add"); lua_setfield(L, -2, "__add");
+    lua_pushcfunction(L, l_Color3_sub, "Color3.__sub"); lua_setfield(L, -2, "__sub");
 
     lua_pop(L,1);
 

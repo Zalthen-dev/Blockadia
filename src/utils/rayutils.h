@@ -75,3 +75,12 @@ inline void DrawTextOutlined(const char *text, int posX, int posY, int fontSize,
 
 	DrawText(text, posX, posY, fontSize, textColor);
 }
+
+inline bool IsMouseInRectangle(Rectangle rect) {
+	Vector2 mousePos = GetMousePosition();
+
+	return (
+		(mousePos.x >= rect.x && mousePos.y >= rect.y) && 
+		(mousePos.x <= rect.x + rect.width && mousePos.y <= rect.y + rect.height)
+	);
+}

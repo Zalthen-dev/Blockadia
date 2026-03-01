@@ -9,6 +9,6 @@ void ReadyRenderer();
 void UnreadyRenderer();
 void EnsureRendererIsReady();
 
-void RenderInstance(Instance* inst, const Matrix& parentTransform);
+void RenderInstance(Instance* inst);
 void RenderWorkspace();
 void RenderGui();

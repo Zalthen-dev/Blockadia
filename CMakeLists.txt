@@ -14,7 +14,7 @@ set(LUAU_BUILD_WEB OFF CACHE BOOL "" FORCE)
 find_package(raylib REQUIRED)
 add_subdirectory(vendor/luau)
 
-file(GLOB_RECURSE PROJECT_SRC src/*.cpp)
+file(GLOB_RECURSE PROJECT_SRC src/*.cpp src/core/*.cpp)
 file(GLOB RAYLIB_SRC vendor/raylib/src/*.c)
 
 add_executable(${PROJECT_NAME} ${PROJECT_SRC} ${RAYLIB_SRC})

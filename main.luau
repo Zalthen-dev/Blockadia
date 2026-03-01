@@ -5,6 +5,13 @@ print("Hello World!")
 
 local random = Random.new()
 
+-- baseplate
+local baseplate = Instance.new("Part")
+baseplate.Position = Vector3.new(0, -8, 0)
+baseplate.Size = Vector3.new(2048, 16, 2048)
+baseplate.Color = Color3.fromRGB(99, 95, 98)
+baseplate.Parent = workspace
+
 -- bunch of blocks in a line
 for i = 1, 100 do
 	local part = Instance.new("Part")
@@ -74,6 +81,14 @@ local origin = Vector3.new(0, 10, 0)
 local part = Instance.new("Part")
 part.Size = Vector3.new(1, 1, 1)
 part.Parent = workspace
+
+-- sound
+local sound = Instance.new("Sound")
+sound.SoundId = "laser gun sound.ogg"
+sound.Volume = 1
+sound.PlaybackSpeed = 1
+sound.Parent = workspace
+--sound:Play()
 
 local t = 0
 RunService.PreRender:Connect(function(deltaTime)

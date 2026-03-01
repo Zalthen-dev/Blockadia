@@ -24,7 +24,7 @@ Even with this API you can do a lot of things! Here's a quick overview of the AP
 	- `Vector2` & `Vector3`
 - Objects (creatable from a script)
 	- `Part`
-	- `Sound` (untested)
+	- `Sound`
 	- `Folder`
 	- `ScreenGui`
 	- `Frame`

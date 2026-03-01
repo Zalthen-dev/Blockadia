@@ -1,3 +1,25 @@
+# 2/28/2096
+
+You can now choose between different Luau scripts to execute in a simple Loader menu
+- Note the scripts have to be in the same directory as the executable file
+
+Sounds have been fixed, they now play correctly
+
+Extended `DebugVisualService` with two new functions, and changed how draw commands are drawn
+- Draw commands are now drawn in the order they are called in, independent of what kind of function was called
+- New functions
+	- `DebugVisualService:DrawArrow2D(from: UDim2, to: UDim2, arrowSize: number?, color: Color3?)`
+		- Only draws arrow if `arrowSize > 1`, otherwise behaves like `DrawLine2D`
+		- `arrowSize` defaults to `10`
+		- `color` defaults to `Color3.new(0, 0, 0)`
+	- `DebugVisualService:DrawArrow3D(from: Vector3, to: Vector3, arrowSize: number?, arrowSegments: number?, color: Color3?)`
+		- Only draws arrow if `arrowSize > 0` and `arrowSegments > 2`, otherwise behaves like `DrawLine3D`
+		- `arrowSize` defaults to `1`
+		- `arrowSegments` defaults to `4`
+		- `color` defaults to `Color3.new(0, 0, 0)`
+
+Some organization
+
 # 2/25/2026
 
 Improved the README and also added an Icon & card (is that what they're called? Well it has the logo and name)

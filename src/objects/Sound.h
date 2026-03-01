@@ -8,9 +8,6 @@
 
 // name has to be different since raylib defines its own "Sound" struct
 
-
-#define AreStringsEqual(a, b) (std::strcmp(a, b) == 0)
-
 struct ObjectSound : Instance {
 	std::string Name = "Sound";
 	std::string SoundId = "";
@@ -26,6 +23,7 @@ struct ObjectSound : Instance {
 	bool Looped = false;
 
 	ObjectSound() {
+		music = {};
 		music.looping = false;
 	}
 
@@ -33,15 +31,45 @@ struct ObjectSound : Instance {
         return "Sound";
     }
 
+	void Update() {
+		UpdateMusicStream(music);
+	}
+
+	void Play() {
+		Update();
+		if (IsLoaded && IsMusicValid(music)) {
+			PlayMusicStream(music);
+		}
+	}
+
+	void Stop() {
+		Update();
+		if (IsLoaded && IsMusicValid(music)) {
+			StopMusicStream(music);
+		}
+	}
+
+	void Pause() {
+		Update();
+		if (IsLoaded && IsMusicValid(music)) {
+			PauseMusicStream(music);
+		}
+	}
+
+	void Resume() {
+		Update();
+		if (IsLoaded && IsMusicValid(music)) {
+			ResumeMusicStream(music);
+		}
+	}
+
 	static int l_Play(lua_State* L) {
 		ObjectSound* self = *(ObjectSound**)luaL_checkudata(L, 1, "Instance");
 		if (!self) {
 			return 0;
 		}
 
-		if (!IsMusicStreamPlaying(self->music)) {
-			PlayMusicStream(self->music);
-		}
+		self->Play();
 		
 		return 0;
 	}
@@ -52,9 +80,7 @@ struct ObjectSound : Instance {
 			return 0;
 		}
 
-		if (IsMusicStreamPlaying(self->music)) {
-			StopMusicStream(self->music);
-		}
+		self->Stop();
 
 		return 0;
 	}
@@ -65,9 +91,7 @@ struct ObjectSound : Instance {
 			return 0;
 		}
 
-		if (IsMusicStreamPlaying(self->music)) {
-			PauseMusicStream(self->music);
-		}
+		self->Pause();
 
 		return 0;
 	}
@@ -78,9 +102,7 @@ struct ObjectSound : Instance {
 			return 0;
 		}
 
-		if (IsMusicStreamPlaying(self->music)) {
-			ResumeMusicStream(self->music);
-		}
+		self->Resume();
 
 		return 0;
 	}
@@ -88,34 +110,34 @@ struct ObjectSound : Instance {
 	bool LuaGet(lua_State* L, const char* key) override {
 
 		// functions
-		if (AreStringsEqual(key, "Play")) {
+		if (std::strcmp(key, "Play") == 0) {
 			lua_pushcfunction(L, l_Play, "Sound:Play");
 			return true;
 		}
 
-		if (AreStringsEqual(key, "Stop")) {
+		if (std::strcmp(key, "Stop") == 0) {
 			lua_pushcfunction(L, l_Stop, "Sound:Stop");
 			return true;
 		}
 
 		// mutable
 
-		if (AreStringsEqual(key, "SoundId")) {
+		if (std::strcmp(key, "SoundId") == 0) {
 			lua_pushstring(L, SoundId.data());
 			return true;
 		}
 
-		if (AreStringsEqual(key, "PlaybackSpeed")) {
+		if (std::strcmp(key, "PlaybackSpeed") == 0) {
 			lua_pushnumber(L, static_cast<double>(PlaybackSpeed));
 			return true;
 		}
 
-		if (AreStringsEqual(key, "Volume")) {
+		if (std::strcmp(key, "Volume") == 0) {
 			lua_pushnumber(L, static_cast<double>(Volume));
 			return true;
 		}
 
-		if (AreStringsEqual(key, "Looped")) {
+		if (std::strcmp(key, "Looped") == 0) {
 			lua_pushboolean(L, music.looping);
 			return true;
 		}
@@ -123,28 +145,48 @@ struct ObjectSound : Instance {
 		// immutable
 		// except for sound.Playing because its mutable
 
-		if (AreStringsEqual(key, "IsLoaded")) {
+		if (std::strcmp(key, "IsLoaded") == 0) {
 			lua_pushboolean(L, IsLoaded);
 			return true;
 		}
 
-		if (AreStringsEqual(key, "IsPaused")) {
-			lua_pushboolean(L, !IsMusicStreamPlaying(music));
+		if (std::strcmp(key, "IsPaused") == 0) {
+			if (IsLoaded && IsMusicStreamPlaying(music)) {
+				lua_pushboolean(L, !IsMusicStreamPlaying(music));
+			} else {
+				lua_pushboolean(L, true);
+			}
+
 			return true;
 		}
 
-		if (AreStringsEqual(key, "IsPlaying") || AreStringsEqual(key, "Playing")) {
-			lua_pushboolean(L, IsMusicStreamPlaying(music));
+		if (std::strcmp(key, "IsPlaying") == 0 || std::strcmp(key, "Playing") == 0) {
+			if (IsLoaded && IsMusicStreamPlaying(music)) {
+				lua_pushboolean(L, IsMusicStreamPlaying(music));
+			} else {
+				lua_pushboolean(L, false);
+			}
+
 			return true;
 		}
 
-		if (AreStringsEqual(key, "TimeLength")) {
-			lua_pushboolean(L, GetMusicTimeLength(music));
+		if (std::strcmp(key, "TimeLength") == 0) {
+			if (IsLoaded && IsMusicStreamPlaying(music)) {
+				lua_pushnumber(L, GetMusicTimeLength(music));
+			} else {
+				lua_pushnumber(L, 0.0);
+			}
+			
 			return true;
 		}
 
-		if (AreStringsEqual(key, "TimePosition")) {
-			lua_pushboolean(L, GetMusicTimePlayed(music));
+		if (std::strcmp(key, "TimePosition") == 0) {
+			if (IsLoaded && IsMusicStreamPlaying(music)) {
+				lua_pushnumber(L, GetMusicTimePlayed(music));
+			} else {
+				lua_pushnumber(L, 0.0);
+			}
+
 			return true;
 		}
 
@@ -152,46 +194,63 @@ struct ObjectSound : Instance {
 	}
 	
 	bool LuaSet(lua_State* L, const char* key, int valueIndex) override {
-		if (AreStringsEqual(key, "SoundId")) {
+		if (std::strcmp(key, "SoundId") == 0) {
 			SoundId = luaL_checkstring(L, valueIndex);
 
-			IsLoaded = false;
-			UnloadMusicStream(music);
+			if (IsLoaded && IsMusicValid(music)) {
+				UnloadMusicStream(music);
+				IsLoaded = false;
+			}
 
 			music = LoadMusicStream(SoundId.data());
 			music.looping = Looped;
 
 			IsLoaded = IsMusicValid(music);
 
-			return true;
-		}
-
-		if (AreStringsEqual(key, "PlaybackSpeed")) {
-			PlaybackSpeed = static_cast<float>(luaL_checknumber(L, valueIndex));
-			SetMusicPitch(music, PlaybackSpeed);
-			return true;
-		}
-
-		if (AreStringsEqual(key, "Volume")) {
-			Volume = static_cast<float>(luaL_checknumber(L, valueIndex));
-			SetMusicVolume(music, Volume);
-			return true;
-		}
-
-		if (AreStringsEqual(key, "Volume")) {
-			music.looping = luaL_checkboolean(L, valueIndex);
-			Looped = music.looping;
-			return true;
-		}
-
-		if (AreStringsEqual(key, "Playing")) {
-			bool stopPlayback = !luaL_checkboolean(L, valueIndex);
-
-			if (stopPlayback) {
-				StopMusicStream(music);
-			} else {
-				PlayMusicStream(music);
+			if (IsLoaded) {
+				SetMusicVolume(music, Volume);
+				SetMusicPitch(music, PlaybackSpeed);
 			}
+
+			return true;
+		}
+
+		if (std::strcmp(key, "PlaybackSpeed") == 0) {
+			PlaybackSpeed = static_cast<float>(luaL_checknumber(L, valueIndex));
+
+			if (IsLoaded && IsMusicValid(music)) {
+				SetMusicPitch(music, PlaybackSpeed);
+			}
+			
+			return true;
+		}
+
+		if (std::strcmp(key, "Volume") == 0) {
+			Volume = static_cast<float>(luaL_checknumber(L, valueIndex));
+
+			if (IsLoaded && IsMusicValid(music)) {
+				SetMusicVolume(music, Volume);
+			}
+
+			return true;
+		}
+
+		if (std::strcmp(key, "Looped") == 0) {
+			Looped = luaL_checkboolean(L, valueIndex);
+			music.looping = Looped;
+			return true;
+		}
+
+		if (std::strcmp(key, "Playing") == 0) {
+			bool startPlayback = luaL_checkboolean(L, valueIndex);
+
+			if (startPlayback) {
+				Play();
+			} else {
+				Pause();
+			}
+
+			return true;
 		}
 
 		return Instance::LuaSet(L, key, valueIndex);

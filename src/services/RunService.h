@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LuaScheduler.h"
+#include "core/LuaScheduler.h"
 #include "Service.h"
 
 #include "datatypes/LuaSignal.h"

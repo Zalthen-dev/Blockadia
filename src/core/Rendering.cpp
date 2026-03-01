@@ -1,4 +1,4 @@
-#include "Rendering.h"
+#include "core/Rendering.h"
 
 #include <cstring>
 #include <rlgl.h>
@@ -73,6 +73,15 @@ static Vector2 ComputeAbsolutePosition(const LuaUDim2& pos,const Vector2& parent
 
 // helpers rendering
 
+Matrix MatrixRemoveScale(Matrix m) {
+	m.m0 = 1;
+	m.m5 = 1;
+	m.m10 = 1;
+	m.m15 = 1.f;
+
+	return m;
+}
+
 void ReadyRenderer() {
 	rlSetClipPlanes(vMinRenderDistance, vMaxRenderDistance);
 
@@ -105,10 +114,9 @@ void EnsureRendererIsReady() {
 	if (!rendererReady) ReadyRenderer();
 }
 
-bool RenderingIsTexturePass = false;
-void RenderInstance(Instance* inst, const Matrix& parentTransform) {
-    Matrix local = parentTransform;
 
+bool RenderingIsTexturePass = false;
+void RenderInstance(Instance* inst) {
     if (Part* part = dynamic_cast<Part*>(inst)) {
         Matrix transform = MatrixScale(
             part->Size.x,
@@ -134,8 +142,6 @@ void RenderInstance(Instance* inst, const Matrix& parentTransform) {
             )
         );
 
-        local = MatrixMultiply(parentTransform, transform);
-
 		if (RenderingIsTexturePass) {
 			Vector3 partSize = Vector3Scale(part->Size, 1);
 
@@ -150,13 +156,19 @@ void RenderInstance(Instance* inst, const Matrix& parentTransform) {
 
 			SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "albedoColor"), &color, SHADER_UNIFORM_VEC3);
 		}
-		
-        DrawMesh(meshCube, material, local);
-    }
 
-    for (Instance* child : inst->Children) {
-        RenderInstance(child, local);
-    }
+		if (part->Shape == "Ball") {
+			DrawMesh(meshBall, material, transform);
+		} else {
+			DrawMesh(meshCube, material, transform);
+		}
+		
+		
+	}
+
+	for (Instance* child : inst->Children) {
+		RenderInstance(child);
+	}
 }
 
 void RenderWorkspace() {
@@ -177,7 +189,7 @@ void RenderWorkspace() {
 		SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "lightColor"), &lightColor, SHADER_UNIFORM_VEC3);
 		SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "ambientColor"), &ambient, SHADER_UNIFORM_VEC3);
 
-		RenderInstance(gWorkspace, MatrixIdentity());
+		RenderInstance(gWorkspace);
 	EndShaderMode();
 
 	// Texture pass
@@ -189,7 +201,7 @@ void RenderWorkspace() {
 		BeginShaderMode(gTextureShader);
 			SetShaderValueTexture(gTextureShader, GetShaderLocation(gTextureShader, "texture0"), partTexture);
 			SetShaderValue(gTextureShader, GetShaderLocation(gTextureShader, "tileCount"), &textureScale, SHADER_UNIFORM_VEC2);
-			RenderInstance(gWorkspace, MatrixIdentity());
+			RenderInstance(gWorkspace);
 		EndShaderMode();
 	}
 }
