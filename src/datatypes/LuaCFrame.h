@@ -211,10 +211,8 @@ static void RegisterCFrame(lua_State* L) {
 	lua_pop(L,1);
 
 	lua_newtable(L); // CFrame
-
-	lua_pushcfunction(L, l_CFrame_new, "CFrame.new"); lua_setfield(L, -2, "new");
-	lua_pushcfunction(L, l_CFrame_lookAt, "CFrame.lookAt"); lua_setfield(L, -2, "lookAt");
-	lua_pushcfunction(L, l_CFrame_fromEulerAnglesXYZ, "CFrame.fromEulerAnglesXYZ"); lua_setfield(L, -2, "fromEulerAnglesXYZ");
-
+		lua_pushcfunction(L, l_CFrame_new, "CFrame.new"); lua_setfield(L, -2, "new");
+		lua_pushcfunction(L, l_CFrame_lookAt, "CFrame.lookAt"); lua_setfield(L, -2, "lookAt");
+		lua_pushcfunction(L, l_CFrame_fromEulerAnglesXYZ, "CFrame.fromEulerAnglesXYZ"); lua_setfield(L, -2, "fromEulerAnglesXYZ");
 	lua_setglobal(L, "CFrame");
 }

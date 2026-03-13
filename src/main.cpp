@@ -27,6 +27,7 @@
 #include "services/StarterGui.h"
 #include "services/RunService.h"
 #include "services/DebugVisualService.h"
+#include "services/Debris.h"
 
 #include "objects/BaseScript.h"
 #include "objects/Part.h"
@@ -37,6 +38,7 @@ Lighting* gLighting = nullptr;
 StarterGui* gStarterGui = nullptr;
 RunService* gRunService = nullptr;
 DebugVisualService* gDebugVisualService = nullptr;
+Debris* gDebris = nullptr;
 BaseScript* gMainScript = nullptr;
 
 LuaScheduler gLuaScheduler;
@@ -170,6 +172,7 @@ void SetupGame() {
 	gStarterGui = new StarterGui{}; gStarterGui->SetParent(gGame);
 	gRunService = new RunService{}; gRunService->SetParent(gGame);
 	gDebugVisualService = new DebugVisualService{}; gDebugVisualService->SetParent(gGame);
+	gDebris = new Debris{}; gDebris->SetParent(gGame);
 
 	SetScriptingAPI(gLuaScheduler.L);
 }
@@ -184,8 +187,6 @@ int main() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(1600, 900, "Blockadia");
 	SetTargetFPS(60);
-
-	
 
 	Image icon = LoadImageFromMemory(".png", iconData, 534);
 	SetWindowIcon(icon);

@@ -110,10 +110,10 @@ static int l_Random_new(lua_State* L) {
 
 static void RegisterRandom(lua_State* L) {
 	luaL_newmetatable(L, LUA_RANDOM);
-	lua_pushcfunction(L, l_Random_index, "Random.__index"); lua_setfield(L, -2, "__index");
+		lua_pushcfunction(L, l_Random_index, "Random.__index"); lua_setfield(L, -2, "__index");
 	lua_pop(L, 1);
 
 	lua_newtable(L);
-	lua_pushcfunction(L, l_Random_new, "Random.new"); lua_setfield(L, -2, "new");
+		lua_pushcfunction(L, l_Random_new, "Random.new"); lua_setfield(L, -2, "new");
 	lua_setglobal(L, "Random");
 }

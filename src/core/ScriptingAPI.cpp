@@ -1,5 +1,7 @@
 #include "ScriptingAPI.h"
 
+#include "raylib.h"
+
 #include <string>
 #include <cstring>
 
@@ -26,7 +28,6 @@
 #include "Game.h"
 #include "objects/Sound.h"
 #include "objects/TextLabel.h"
-#include "raylib.h"
 #include "services/Workspace.h"
 
 extern Game* gGame;
@@ -88,13 +89,13 @@ static int l_Time(lua_State* L) {
 /*
 void RestrictScriptingAPI(lua_State* L) {
 	auto copyField = [&](const char* name) {
-        lua_getfield(L, -2, name);
-        if (!lua_isnil(L, -1)) {
-            lua_setfield(L, -2, name);
-        } else {
-            lua_pop(L, 1);
-        }
-    };
+		lua_getfield(L, -2, name);
+		if (!lua_isnil(L, -1)) {
+			lua_setfield(L, -2, name);
+		} else {
+			lua_pop(L, 1);
+		}
+	};
 
 	lua_getglobal(L, "os");
 	if (!lua_istable(L, -1)) {

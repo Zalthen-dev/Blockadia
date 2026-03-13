@@ -201,19 +201,15 @@ static void RegisterUDim(lua_State* L) {
 
 static void RegisterUDim2(lua_State* L) {
 	luaL_newmetatable(L, LUA_UDIM2);
-
-    lua_pushcfunction(L, l_UDim2_index, "index"); lua_setfield(L, -2, "__index");
-    lua_pushcfunction(L, l_UDim2_add, "add"); lua_setfield(L, -2, "__add");
-    lua_pushcfunction(L, l_UDim2_sub, "sub"); lua_setfield(L, -2, "__sub");
-	lua_pushcfunction(L, l_UDim2_tostring, "tostring"); lua_setfield(L, -2, "__tostring");
-
-    lua_pop(L, 1);
+		lua_pushcfunction(L, l_UDim2_index, "index"); lua_setfield(L, -2, "__index");
+		lua_pushcfunction(L, l_UDim2_add, "add"); lua_setfield(L, -2, "__add");
+		lua_pushcfunction(L, l_UDim2_sub, "sub"); lua_setfield(L, -2, "__sub");
+		lua_pushcfunction(L, l_UDim2_tostring, "tostring"); lua_setfield(L, -2, "__tostring");
+	lua_pop(L, 1);
 
 	lua_newtable(L);
-
-    lua_pushcfunction(L, l_UDim2_new, "new"); lua_setfield(L, -2, "new");
-    lua_pushcfunction(L, l_UDim2_fromScale, "fromScale"); lua_setfield(L, -2, "fromScale");
-    lua_pushcfunction(L, l_UDim2_fromOffset, "fromOffset"); lua_setfield(L, -2, "fromOffset");
-
-    lua_setglobal(L, "UDim2");
+		lua_pushcfunction(L, l_UDim2_new, "new"); lua_setfield(L, -2, "new");
+		lua_pushcfunction(L, l_UDim2_fromScale, "fromScale"); lua_setfield(L, -2, "fromScale");
+		lua_pushcfunction(L, l_UDim2_fromOffset, "fromOffset"); lua_setfield(L, -2, "fromOffset");
+	lua_setglobal(L, "UDim2");
 }

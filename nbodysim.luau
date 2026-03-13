@@ -13,11 +13,10 @@ container.Parent = workspace
 -- whether or not to show debug stuff
 -- DEBUG_SHOW_VELOCITY_ARROWS whether or not to show velocity arrows for each body that can move
 local DEBUG_ENABLED = true
-local DEBUG_SHOW_VELOCITY_ARROWS = false
+local DEBUG_SHOW_VELOCITY_ARROWS = true
 
--- maximum deltaTime for StepPhysics()
--- set to -1 for no max step time
-local MAX_STEP_TIME = 0.025
+-- delta time for each physics step
+local PHYSICS_STEP_TIME = 0.05
 
 -- gravity constant
 -- in short: multiplies the acceleration of bodies
@@ -100,25 +99,15 @@ for i = 1, 100 do
 	)
 
 	local body = CreateBody(mass, position)
-	body.Velocity = random:NextUnitVector() * 50
+	body.Velocity = random:NextUnitVector() * 5
 end
 
 RunService.PreRender:Connect(function(dt)
-	local stepTime = dt
-
-	if MAX_STEP_TIME ~= -1 then
-		stepTime = math.min(stepTime, MAX_STEP_TIME)
-	end
-
-	if RunSimulation then
-		StepPhysics(stepTime)
-	end
-
 	if DEBUG_ENABLED then
 		DBG:DrawText(`GRAVITY CONST: {G}`, UDim2.fromOffset(40, 40), Color3.new(0, 0.1, 0.2))
 		DBG:DrawText(`SOFTENING: {SOFTENING}`, UDim2.fromOffset(40, 60), Color3.new(0, 0.1, 0.2))
 		DBG:DrawText(`N-BODY COUNT: {#container:GetChildren()}`, UDim2.fromOffset(40, 80), Color3.new(0, 0.1, 0.2))
-		DBG:DrawText(`STEP TIME: {string.format("%.5f", stepTime)}`, UDim2.fromOffset(40, 100), Color3.new(0, 0.1, 0.2))
+		DBG:DrawText(`STEP TIME: {string.format("%.5f", PHYSICS_STEP_TIME)}`, UDim2.fromOffset(40, 100), Color3.new(0, 0.1, 0.2))
 		DBG:DrawText(`VEL ARROWS SHOWN: {DEBUG_SHOW_VELOCITY_ARROWS and "Y" or "N"}`, UDim2.fromOffset(40, 120), Color3.new(0, 0.1, 0.2))
 
 		if DEBUG_SHOW_VELOCITY_ARROWS then
@@ -132,3 +121,8 @@ end)
 
 task.wait(2)
 RunSimulation = true
+
+while true do
+	task.wait(PHYSICS_STEP_TIME)
+	StepPhysics(PHYSICS_STEP_TIME)
+end

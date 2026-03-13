@@ -48,6 +48,7 @@ static RenderTexture shadowMap;
 static Material material;
 static Mesh meshCube;
 static Mesh meshBall;
+static Mesh meshCylinder;
 static Shader gBasicShader;
 static Shader gTextureShader;
 static Texture partTexture;
@@ -89,6 +90,7 @@ void ReadyRenderer() {
 
 	meshCube = GenMeshCube(1, 1, 1);
 	meshBall = GenMeshSphere(0.5, 16, 16);
+	meshCylinder = GenMeshCylinder(0.5, 1, 16);
 
 	material = LoadMaterialDefault();
 	material.maps[MATERIAL_MAP_ALBEDO].color = WHITE;
@@ -106,6 +108,8 @@ void ReadyRenderer() {
 void UnreadyRenderer() {
 	rendererReady = false;
 	UnloadMesh(meshCube);
+	UnloadMesh(meshBall);
+	UnloadMesh(meshCylinder);
 	//UnloadMaterial(material);
 	if (gBasicShader.id) UnloadShader(gBasicShader);
 }
@@ -113,7 +117,6 @@ void UnreadyRenderer() {
 void EnsureRendererIsReady() {
 	if (!rendererReady) ReadyRenderer();
 }
-
 
 bool RenderingIsTexturePass = false;
 void RenderInstance(Instance* inst) {
@@ -159,11 +162,11 @@ void RenderInstance(Instance* inst) {
 
 		if (part->Shape == "Ball") {
 			DrawMesh(meshBall, material, transform);
+		} else if (part->Shape == "Cylinder") {
+			DrawMesh(meshCylinder, material, transform);
 		} else {
 			DrawMesh(meshCube, material, transform);
 		}
-		
-		
 	}
 
 	for (Instance* child : inst->Children) {

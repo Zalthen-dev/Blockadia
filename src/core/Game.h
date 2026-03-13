@@ -1,4 +1,6 @@
 #pragma once
+#ifndef BLOCKADIA_GAME_H
+#define BLOCKADIA_GAME_H
 
 #include "objects/Instance.h"
 #include "services/Service.h"
@@ -10,7 +12,7 @@
 
 struct Game : Instance {
 	std::string Name = "Game";
-	const char* ClassName() const { return "Game"; }
+	const char* ClassName() const override { return "Game"; }
 
 	Game() {
 		ParentingLocked = true;
@@ -58,3 +60,5 @@ struct Game : Instance {
 		return Instance::LuaGet(L, key);
 	}
 };
+
+#endif
