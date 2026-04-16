@@ -29,7 +29,7 @@ struct UserInputService : Service {
 
 	bool LuaGet(lua_State* L, const char* key) override {
 		if (std::strcmp(key, "GamepadEnabled") == 0) {
-			lua_pushboolean(L, IsGamepadAvailable(1));
+			lua_pushboolean(L, IsGamepadAvailable(0));
 			return true;
 		}
 

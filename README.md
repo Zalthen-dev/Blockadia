@@ -1,8 +1,10 @@
 # Blockadia [ DEMO ]
-<img src="repo/BlockadiaCard.png"/>
+<a href="https://discord.com/invite/xMPCsx3dNf"><img src="repo/BlockadiaCard.png"/></a>
 
 The Game Engine built with freedom and ease-of-use in mind <br>
 Build games big and small with Luau, easy to learn and capable <br>
+
+We have a discord server! Feel free to join: https://discord.com/invite/xMPCsx3dNf
 
 ## API
 

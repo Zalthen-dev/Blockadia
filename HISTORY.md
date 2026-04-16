@@ -1,8 +1,23 @@
+# 4/15/2026
+
+Added link to Discord Server to the README
+
+Here's some future plans for Blockadia to look forward to:
+- API expansion
+- Two programs for Blockadia, each serving a different purpose
+	- Blockadia Creator
+		- This will be for creating Blockadia places that the runtime can execute
+	- Blockadia Runtime
+		- This will be for running places, both as a server and a client to connect to a server
+- Blockadia Framework
+	- This will simplify development preventing both the Creator and Runtime from implementing the same thing two times
+	- The Creator and Runtime would use the same Framework
+
 # 3/12/2026
 
 Added Debris service, and unfinished UserInputService
 
-Added `Cylinder` shape to `Part`
+Added `Cylinder` shape type to `Part`
 
 Formatting changes
 

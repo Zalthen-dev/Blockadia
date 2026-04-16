@@ -241,7 +241,7 @@ int main() {
 		DrawGrid(10, 1.0f);
 
 		FireSignal(gRunService->RenderStepped, [&](lua_State* L) {
-		    lua_pushnumber(L, frameTime);
+			lua_pushnumber(L, frameTime);
 		});
 
 		RenderWorkspace();
