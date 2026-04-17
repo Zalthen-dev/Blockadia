@@ -22,10 +22,10 @@ static LuaCFrame* CheckCFrame(lua_State* L, int idx) {
 
 static void PushCFrame(lua_State* L, const Matrix& m) {
 	LuaCFrame* c = (LuaCFrame*)lua_newuserdata(L, sizeof(LuaCFrame));
-    c->m = m;
+	c->m = m;
 
-    luaL_getmetatable(L, LUA_CFRAME);
-    lua_setmetatable(L, -2);
+	luaL_getmetatable(L, LUA_CFRAME);
+	lua_setmetatable(L, -2);
 }
 
 static Matrix CFrameIdentity() {
@@ -51,24 +51,24 @@ inline Matrix CFrameFromBasis(Vector3 pos, Vector3 right, Vector3 up, Vector3 ba
 }
 
 inline Vector3 CFrameGetPosition(const LuaCFrame& cf) {
-    return { cf.m.m12, cf.m.m13, cf.m.m14 };
+	return { cf.m.m12, cf.m.m13, cf.m.m14 };
 }
 
 inline Vector3 CFrameGetRight(const LuaCFrame& c) {
-    return { c.m.m0, c.m.m1, c.m.m2 };
+	return { c.m.m0, c.m.m1, c.m.m2 };
 }
 
 inline Vector3 CFrameGetUp(const LuaCFrame& c) {
-    return { c.m.m4, c.m.m5, c.m.m6 };
+	return { c.m.m4, c.m.m5, c.m.m6 };
 }
 
 inline Vector3 CFrameGetBack(const LuaCFrame& c) {
-    return { c.m.m8, c.m.m9, c.m.m10 };
+	return { c.m.m8, c.m.m9, c.m.m10 };
 }
 
 inline Vector3 CFrameGetLook(const LuaCFrame& c) {
-    Vector3 b = CFrameGetBack(c);
-    return { -b.x, -b.y, -b.z };
+	Vector3 b = CFrameGetBack(c);
+	return { -b.x, -b.y, -b.z };
 }
 
 static Matrix CFrameFromEuler(Vector3 pos, Vector3 rotDeg) {
@@ -103,7 +103,7 @@ inline Matrix CFrameLookAt(Vector3 pos, Vector3 target, Vector3 up = {0,1,0}) {
 
 static int l_CFrame_index(lua_State* L) {
 	LuaCFrame* c = CheckCFrame(L, 1);
-    const char* key = luaL_checkstring(L, 2);
+	const char* key = luaL_checkstring(L, 2);
 
 	if (std::strcmp(key, "Position") == 0) {
 		Vector3 pos = CFrameGetPosition(*c);
@@ -151,7 +151,7 @@ static int l_CFrame_index(lua_State* L) {
 static int l_CFrame_mul(lua_State* L);
 
 static int l_CFrame_new(lua_State* L) {
-    int argc = lua_gettop(L);
+	int argc = lua_gettop(L);
 
 	if (argc == 0) {
 		PushCFrame(L, MatrixIdentity());
@@ -185,19 +185,19 @@ static int l_CFrame_new(lua_State* L) {
 
 		PushCFrame(L, MatrixTranslate(x, y, z));
 		return 1;
-    }
+	}
 
 	luaL_error(L, "Invalid arguments to CFrame.new");
-    return 0;
+	return 0;
 }
 
 static int l_CFrame_fromEulerAnglesXYZ(lua_State* L) {
-    float x = (float)luaL_checknumber(L, 1);
-    float y = (float)luaL_checknumber(L, 2);
-    float z = (float)luaL_checknumber(L, 3);
+	float x = (float)luaL_checknumber(L, 1);
+	float y = (float)luaL_checknumber(L, 2);
+	float z = (float)luaL_checknumber(L, 3);
 
-    PushCFrame(L, CFrameFromEuler(Vector3Zero(), {x, y, z}));
-    return 1;
+	PushCFrame(L, CFrameFromEuler(Vector3Zero(), {x, y, z}));
+	return 1;
 }
 
 static int l_CFrame_lookAt(lua_State* L) {

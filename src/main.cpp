@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <random>
 #include <vector>
 #include <string>
 
@@ -27,10 +28,13 @@
 #include "services/StarterGui.h"
 #include "services/RunService.h"
 #include "services/DebugVisualService.h"
+#include "services/ServerScriptService.h"
 #include "services/Debris.h"
 
 #include "objects/BaseScript.h"
 #include "objects/Part.h"
+
+std::mt19937 gRng;
 
 Game* gGame = nullptr;
 Workspace* gWorkspace = nullptr;
@@ -38,6 +42,7 @@ Lighting* gLighting = nullptr;
 StarterGui* gStarterGui = nullptr;
 RunService* gRunService = nullptr;
 DebugVisualService* gDebugVisualService = nullptr;
+ServerScriptService* gServerScriptService = nullptr;
 Debris* gDebris = nullptr;
 BaseScript* gMainScript = nullptr;
 
@@ -165,14 +170,19 @@ void SetupGame() {
 	gLuaScheduler.L = luaL_newstate();
 	luaL_openlibs(gLuaScheduler.L);
 
+	#define QuickCreateService(v, t) v = new t{}; v->SetParent(gGame)
+
 	gGame = new Game{};
 
-	gWorkspace = new Workspace{}; gWorkspace->SetParent(gGame);
-	gLighting = new Lighting{}; gLighting->SetParent(gGame);
-	gStarterGui = new StarterGui{}; gStarterGui->SetParent(gGame);
-	gRunService = new RunService{}; gRunService->SetParent(gGame);
-	gDebugVisualService = new DebugVisualService{}; gDebugVisualService->SetParent(gGame);
-	gDebris = new Debris{}; gDebris->SetParent(gGame);
+	QuickCreateService(gWorkspace, Workspace);
+	QuickCreateService(gLighting, Lighting);
+	QuickCreateService(gStarterGui, StarterGui);
+	QuickCreateService(gRunService, RunService);
+	QuickCreateService(gDebugVisualService, DebugVisualService);
+	QuickCreateService(gServerScriptService, ServerScriptService);
+	QuickCreateService(gDebris, Debris);
+
+	#undef QuickCreateService
 
 	SetScriptingAPI(gLuaScheduler.L);
 }
@@ -187,6 +197,8 @@ int main() {
 	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	InitWindow(1600, 900, "Blockadia");
 	SetTargetFPS(60);
+
+	gRng.seed(51243554);
 
 	Image icon = LoadImageFromMemory(".png", iconData, 534);
 	SetWindowIcon(icon);
@@ -237,8 +249,6 @@ int main() {
 		UpdateDescendantSoundStreams(gGame);
 		camController.StepCamera();
 		BeginMode3D(camera);
-		
-		DrawGrid(10, 1.0f);
 
 		FireSignal(gRunService->RenderStepped, [&](lua_State* L) {
 			lua_pushnumber(L, frameTime);

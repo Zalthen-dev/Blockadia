@@ -19,15 +19,15 @@ for i = 1, 100 do
 	part.Position = Vector3.new(i * 10, 10, 20)
 
 	part.Size = Vector3.new(
-		math.random(1, 10), 
-		math.random(1, 10),
-		math.random(1, 10)
+		random:NextNumber(1, 10), 
+		random:NextNumber(1, 10),
+		random:NextNumber(1, 10)
 	)
 
 	part.Rotation = Vector3.new(
-		math.random(-360, 360), 
-		math.random(-360, 360),
-		math.random(-360, 360)
+		random:NextNumber(-360, 360), 
+		random:NextNumber(-360, 360),
+		random:NextNumber(-360, 360)
 	)
 
 	part.Parent = workspace
@@ -40,7 +40,31 @@ s:Connect(function(...)
 	print(...)
 end)
 
-s:Fire(0.5, "hello", 12345)
+s:Fire(0.5, "hello", 12345, baseplate)
+
+-- table sorting with the Fisher-Yates algorithm
+-- demonstrates Random:Shuffle
+
+local exampleTable = {"apple", "banana", "cherry", "orange", "grapefruit", "watermelon", "mango"}
+
+-- helper function
+local function printTable(t)
+	local s = "{ "
+
+	for i = 1, #t do
+		s ..= t[i]
+		if i < #t then
+			s ..= ", "
+		end
+	end
+
+	s ..= " }"
+	print(s)
+end
+
+printTable(exampleTable)
+random:Shuffle(exampleTable)
+printTable(exampleTable)
 
 -- blocks in a uniform sphere
 -- demonstrates the Random library's NextUnitVector
@@ -51,9 +75,9 @@ for i = 1, 1000 do
 	part.Size = Vector3.new(1, 1, 1)
 	part.Position = sphereOrigin + random:NextUnitVector() * sphereRadius;
 	part.Rotation = Vector3.new(
-		math.random(-360, 360),
-		math.random(-360, 360),
-		math.random(-360, 360)
+		random:NextNumber(-360, 360),
+		random:NextNumber(-360, 360),
+		random:NextNumber(-360, 360)
 	)
 	part.Parent = workspace
 end
@@ -64,9 +88,19 @@ screenGui.Parent = game.StarterGui
 
 local frame = Instance.new("Frame")
 frame.Position = UDim2.new(0.5, 0, 0.5, 0)
-frame.Size = UDim2.new(0.2, 0, 0, 2)
+frame.Size = UDim2.new(0, 200, 0, 20)
 frame.AnchorPoint = Vector2.new(0.5, 0.5)
 frame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 16)
+corner.Parent = frame
+
+local frame2 = frame:Clone()
+frame2.Size = UDim2.new(0, 100, 0, 100)
+frame2.Position = UDim2.new(0.5, 16, 0.5, 16)
+frame2.BackgroundColor3 = Color3.new(1, 0, 0)
+frame2.Parent = screenGui
 
 -- text label
 local txtLabel = Instance.new("TextLabel")
@@ -96,6 +130,7 @@ RunService.PreRender:Connect(function(deltaTime)
 
 	frame.Rotation = math.deg(t)
 
+
 	part.Position = origin + Vector3.new(math.cos(t), 0, math.sin(t)) * 10
 	part.Rotation = Vector3.one * math.deg(t)
 
@@ -113,11 +148,11 @@ RunService.PreRender:Connect(function(deltaTime)
 		Color3.new(1, 0, 0)
 	)
 
-    DBG:DrawLine3D(
-        Vector3.zero,
-        part.Position,
-        Color3.new(0, 1, 0)
-    )
+	DBG:DrawLine3D(
+		Vector3.zero,
+		part.Position,
+		Color3.new(0, 1, 0)
+	)
 
 	DBG:DrawRectangle(
 		UDim2.fromOffset(50, 130),
@@ -133,8 +168,9 @@ RunService.PreRender:Connect(function(deltaTime)
 	)
 
 	DBG:DrawText("Yoo look at this", UDim2.fromOffset(60, 140))
-	DBG:DrawText("I should make later draw calls", UDim2.fromOffset(60, 160))
-	DBG:DrawText("draw over earlier draw calls", UDim2.fromOffset(60, 180))
-	DBG:DrawText("Right now order is based on", UDim2.fromOffset(60, 200))
-	DBG:DrawText("what kind of function is called", UDim2.fromOffset(60, 220))
+	DBG:DrawText("Workspace objects below", UDim2.fromOffset(60, 160))
+
+	for i, obj in workspace:GetChildren() do
+		DBG:DrawText(obj.Name, UDim2.fromOffset(60, 160 + (i*20)))
+	end
 end)

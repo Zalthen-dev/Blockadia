@@ -16,14 +16,17 @@
 #include "datatypes/LuaColor3.h"
 #include "datatypes/LuaSignal.h"
 #include "datatypes/LuaRandom.h"
+#include "datatypes/LuaAxes.h"
 
 #include "objects/Frame.h"
 #include "objects/Instance.h"
 #include "objects/Folder.h"
+#include "objects/Model.h"
 #include "objects/Part.h"
 #include "objects/ScreenGui.h"
 #include "objects/Script.h"
 #include "objects/LocalScript.h"
+#include "objects/UICorner.h"
 
 #include "Game.h"
 #include "objects/Sound.h"
@@ -38,44 +41,16 @@ extern Workspace* gWorkspace;
 static int l_Instance_new(lua_State* L) {
 	const char* key = luaL_checkstring(L, 1);
 
-	if (std::strcmp(key, "Part") == 0) {
-		CreateAndPushObject(Part);
-		return 1;
-	}
+	#define QuickCheckToCreateAndPushObject(k, t) if(std::strcmp(key, k) == 0) { CreateAndPushObject(t); return 1; }
 
-	if (std::strcmp(key, "Sound") == 0) {
-		CreateAndPushObject(ObjectSound);
-		return 1;
-	}
-
-	if (std::strcmp(key, "Folder") == 0) {
-		CreateAndPushObject(Folder);
-		return 1;
-	}
-
-	if (std::strcmp(key, "ScreenGui") == 0) {
-		CreateAndPushObject(ScreenGui);
-		return 1;
-	}
-
-	if (std::strcmp(key, "Frame") == 0) {
-		CreateAndPushObject(Frame);
-		return 1;
-	}
-
-	if (std::strcmp(key, "TextLabel") == 0) {
-		CreateAndPushObject(TextLabel);
-		return 1;
-	}
-
-	if (std::strcmp(key, "Script") == 0) {
-		CreateAndPushObject(Script);
-		return 1;
-	}
-	if (std::strcmp(key, "LocalScript") == 0) {
-		CreateAndPushObject(LocalScript);
-		return 1;
-	}
+	QuickCheckToCreateAndPushObject("Part", Part);
+	QuickCheckToCreateAndPushObject("Sound", ObjectSound);
+	QuickCheckToCreateAndPushObject("Folder", Folder);
+	QuickCheckToCreateAndPushObject("Model", ObjectModel);
+	QuickCheckToCreateAndPushObject("ScreenGui", ScreenGui);
+	QuickCheckToCreateAndPushObject("Frame", Frame);
+	QuickCheckToCreateAndPushObject("TextLabel", TextLabel);
+	QuickCheckToCreateAndPushObject("UICorner", UICorner);
 
 	luaL_errorL(L, "Could not create instance of type '%s'", key);
 	return 0;
@@ -131,18 +106,18 @@ void SetScriptingAPI(lua_State* L) {
 	RegisterColor3(L);
 	RegisterSignal(L);
 	RegisterRandom(L);
+	RegisterAxes(L);
 
 	PushInstance(L, gGame); lua_setglobal(L, "game");
 	PushInstance(L, gGame); lua_setglobal(L, "Game");
 
 	PushInstance(L, gWorkspace); lua_setglobal(L, "workspace");
 
-    lua_newtable(L);
+	lua_newtable(L);
 
-    lua_pushcfunction(L, l_Instance_new, "Instance.new"); lua_setfield(L, -2, "new");
-    
+	lua_pushcfunction(L, l_Instance_new, "Instance.new"); lua_setfield(L, -2, "new");
 
-    lua_setglobal(L, "Instance");
+	lua_setglobal(L, "Instance");
 
 	//RestrictScriptingAPI(L);
 

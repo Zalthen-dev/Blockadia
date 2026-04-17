@@ -11,6 +11,8 @@
 #include "raylib.h"
 #include "raymath.h"
 
+extern std::mt19937 gRng;
+
 #define LUA_RANDOM "LuaRandom"
 
 struct LuaRandom {
@@ -22,24 +24,31 @@ static LuaRandom* CheckRandom(lua_State* L, int idx) {
 	return (LuaRandom*)luaL_checkudata(L, idx, LUA_RANDOM);
 }
 
-static void PushRandom(lua_State* L, double seed) {
-    LuaRandom* r = (LuaRandom*)lua_newuserdata(L, sizeof(LuaRandom));
+static void PushRandom(lua_State* L, std::mt19937 rng, double seed) {
+	LuaRandom* r = (LuaRandom*)lua_newuserdata(L, sizeof(LuaRandom));
+	r->rng = rng;
 	r->seed = seed;
 
-	if (seed == 0) {
-		r->rng.seed(0);
-    } else {
-		r->rng.seed(static_cast<uint32_t>(seed));
-    }
+	r->rng.seed(static_cast<uint32_t>(seed));
 
-    luaL_getmetatable(L, LUA_RANDOM);
-    lua_setmetatable(L, -2);
+	luaL_getmetatable(L, LUA_RANDOM);
+	lua_setmetatable(L, -2);
+}
+
+static void PushRandom(lua_State* L, double seed) {
+	LuaRandom* r = (LuaRandom*)lua_newuserdata(L, sizeof(LuaRandom));
+	r->seed = seed;
+
+	r->rng.seed(static_cast<uint32_t>(seed));
+
+	luaL_getmetatable(L, LUA_RANDOM);
+	lua_setmetatable(L, -2);
 }
 
 static int l_Random_NextNumber(lua_State* L) {
 	LuaRandom* r = CheckRandom(L, 1);
 	double min = luaL_checknumber(L, 2);
-	double max = luaL_checknumber(L, 2);
+	double max = luaL_checknumber(L, 3);
 
 	std::uniform_real_distribution<double> dist(min, max);
 	double val = dist(r->rng);
@@ -51,7 +60,7 @@ static int l_Random_NextNumber(lua_State* L) {
 static int l_Random_NextInteger(lua_State* L) {
 	LuaRandom* r = CheckRandom(L, 1);
 	double min = luaL_checknumber(L, 2);
-	double max = luaL_checknumber(L, 2);
+	double max = luaL_checknumber(L, 3);
 
 	std::uniform_int_distribution<int> dist(min, max);
 	int val = dist(r->rng);
@@ -60,23 +69,56 @@ static int l_Random_NextInteger(lua_State* L) {
 	return 1;
 }
 
+static int l_Random_Shuffle(lua_State* L) {
+	LuaRandom* r = CheckRandom(L, 1);
+
+	if (!lua_istable(L, 2)) {
+		luaL_error(L, "expected table, got %s", luaL_typename(L, 1));
+		return 0;
+	}
+
+	int len = lua_objlen(L, 2);
+	if (len < 2) return 0;
+
+	for (int i = len; i >= 2; i--) {
+		std::uniform_int_distribution<int> dist(1, i);
+		int j = dist(r->rng);
+
+		if (i == j) continue;
+
+		lua_rawgeti(L, 2, i);
+		lua_rawgeti(L, 2, j);
+
+		lua_rawseti(L, 2, i);
+		lua_rawseti(L, 2, j);
+	}
+
+	return 0;
+}
+
 static int l_Random_NextUnitVector(lua_State* L) {
-    LuaRandom* r = CheckRandom(L, 1);
+	LuaRandom* r = CheckRandom(L, 1);
 
-    std::uniform_real_distribution<float> dist01(0.0f, 1.0f);
+	std::uniform_real_distribution<float> dist01(0.0f, 1.0f);
 
-    float u = dist01(r->rng);
-    float v = dist01(r->rng);
+	float u = dist01(r->rng);
+	float v = dist01(r->rng);
 
-    float theta = 2.0f * PI * u;
-    float z = 2.0f * v - 1.0f;
-    float r_xy = sqrtf(1.0f - z * z);
+	float theta = 2.0f * PI * u;
+	float z = 2.0f * v - 1.0f;
+	float r_xy = sqrtf(1.0f - z * z);
 
-    float x = r_xy * cosf(theta);
-    float y = r_xy * sinf(theta);
+	float x = r_xy * cosf(theta);
+	float y = r_xy * sinf(theta);
 
-    PushVector3(L, x, y, z);
-    return 1;
+	PushVector3(L, x, y, z);
+	return 1;
+}
+
+static int l_Random_Clone(lua_State* L) {
+	LuaRandom* r = CheckRandom(L, 1);
+	PushRandom(L, r->rng, r->seed);
+	return 1;
 }
 
 static int l_Random_index(lua_State* L) {
@@ -93,8 +135,18 @@ static int l_Random_index(lua_State* L) {
 		return 1;
 	}
 
+	if (std::strcmp(key, "Shuffle") == 0) {
+		lua_pushcfunction(L, l_Random_Shuffle, "Random:Shuffle");
+		return 1;
+	}
+
 	if (std::strcmp(key, "NextUnitVector") == 0) {
 		lua_pushcfunction(L, l_Random_NextUnitVector, "Random:NextUnitVector");
+		return 1;
+	}
+
+	if (std::strcmp(key, "Clone") == 0) {
+		lua_pushcfunction(L, l_Random_Clone, "Random:Clone");
 		return 1;
 	}
 

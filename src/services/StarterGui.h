@@ -3,11 +3,11 @@
 #include "Service.h"
 
 struct StarterGui : Service {
-    StarterGui() {
-        Name = "StarterGui";
-    }
+	StarterGui() {
+		Name = "StarterGui";
+	}
 
-    const char* ClassName() const override {
-        return "StarterGui";
-    }
+	const char* ClassName() const override {
+		return "StarterGui";
+	}
 };

@@ -1,17 +1,17 @@
 #pragma once
 
-#include <string>
 #include <cstring>
-#include <vector>
 #include <raylib.h>
+#include <string>
+#include <vector>
 
 #include "lua.h"
-#include "lualib.h"
 #include "luacode.h"
+#include "lualib.h"
 
-#include "objects/Instance.h"
-#include "datatypes/LuaVector3.h"
 #include "datatypes/LuaColor3.h"
+#include "datatypes/LuaVector3.h"
+#include "objects/Instance.h"
 
 struct Part : Instance {
 	Vector3 Position{0, 0.5, 0};
@@ -21,15 +21,15 @@ struct Part : Instance {
 	Color color{163, 162, 165, 255};
 	// where is transparency property?
 	// its baked into the color property since its a raylib color
-	
+
 	std::string Shape = "Block";
 	bool Anchored = false;
 
 	const char* ClassName() const override {
-        return "Part";
-    }
+		return "Part";
+	}
 
-	bool LuaGet(lua_State* L, const char* key) override {
+	bool LuaGet(lua_State *L, const char *key) override {
 		if (std::strcmp(key, "Position") == 0) {
 			PushVector3(L, Position.x, Position.y, Position.z);
 			return true;
@@ -51,12 +51,12 @@ struct Part : Instance {
 		}
 
 		if (std::strcmp(key, "Color") == 0) {
-			PushColor3(L, (float)color.r/255, (float)color.g/255, (float)color.b/255);
+			PushColor3(L, (float)color.r / 255, (float)color.g / 255, (float)color.b / 255);
 			return true;
 		}
 
 		if (std::strcmp(key, "Transparency") == 0) {
-			lua_pushnumber(L, 1.f - (float)color.a/255);
+			lua_pushnumber(L, 1.f - (float)color.a / 255);
 			return true;
 		}
 
@@ -64,7 +64,7 @@ struct Part : Instance {
 			lua_pushstring(L, Shape.data());
 			return true;
 		}
-		
+
 		if (std::strcmp(key, "Anchored") == 0) {
 			lua_pushboolean(L, Anchored);
 			return true;
@@ -72,8 +72,8 @@ struct Part : Instance {
 
 		return Instance::LuaGet(L, key);
 	}
-	
-	bool LuaSet(lua_State* L, const char* key, int valueIndex) override {
+
+	bool LuaSet(lua_State *L, const char *key, int valueIndex) override {
 		if (std::strcmp(key, "Position") == 0) {
 			Position = RaylibVector3FromLuaVector3(*CheckVector3(L, valueIndex));
 			return true;
@@ -95,18 +95,18 @@ struct Part : Instance {
 		}
 
 		if (std::strcmp(key, "Color") == 0) {
-			LuaColor3* clr = CheckColor3(L, valueIndex);
+			LuaColor3 *clr = CheckColor3(L, valueIndex);
 
-			color.r = (unsigned char)(clr->r*255);
-			color.g = (unsigned char)(clr->g*255);
-			color.b = (unsigned char)(clr->b*255);
+			color.r = (unsigned char)(clr->r * 255);
+			color.g = (unsigned char)(clr->g * 255);
+			color.b = (unsigned char)(clr->b * 255);
 
 			return true;
 		}
 
 		if (std::strcmp(key, "Transparency") == 0) {
 			float transparency = static_cast<float>(luaL_checknumber(L, valueIndex));
-			color.a = (unsigned char)((1.f - transparency)*255);
+			color.a = (unsigned char)((1.f - std::clamp(transparency, 0.f, 1.f)) * 255);
 			return true;
 		}
 

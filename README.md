@@ -28,11 +28,11 @@ Even with this API you can do a lot of things! Here's a quick overview of the AP
 	- `Part`
 	- `Sound`
 	- `Folder`
+	- `Model`
 	- `ScreenGui`
 	- `Frame`
-	- `TextGui`
-	- `Script`
-	- `LocalScript`
+	- `TextLabel`
+	- `UICorner`
 
 # How to Use
 

@@ -7,7 +7,7 @@
 #include "lua.h"
 #include "lualib.h"
 
-struct ScreenGui : Instance {
+struct ScreenGui : public Cloneable<ScreenGui, Instance> {
 	std::string Name = "ScreenGui";
 
 	float displayorder = 1;
@@ -15,10 +15,10 @@ struct ScreenGui : Instance {
 	bool IgnoreGuiInset = false;
 
 	const char* ClassName() const override {
-        return "ScreenGui";
-    }
+		return "ScreenGui";
+	}
 
-	bool LuaGet(lua_State* L, const char* key) override {
+	bool LuaGet(lua_State *L, const char *key) override {
 		if (std::strcmp(key, "Enabled") == 0) {
 			lua_pushboolean(L, Enabled);
 			return true;
@@ -42,7 +42,7 @@ struct ScreenGui : Instance {
 		return Instance::LuaGet(L, key);
 	}
 
-	bool LuaSet(lua_State* L, const char* key, int valueIndex) override {
+	bool LuaSet(lua_State *L, const char *key, int valueIndex) override {
 		if (std::strcmp(key, "Enabled") == 0) {
 			Enabled = luaL_checkboolean(L, valueIndex);
 			return true;

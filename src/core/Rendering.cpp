@@ -1,32 +1,32 @@
 #include "core/Rendering.h"
 
-#include <cstring>
 #include <rlgl.h>
+#include "raylib.h"
+#include "raymath.h"
 
 #include "assets/GLSLShaders.h"
 
-#include "datatypes/LuaVector2.h"
 #include "datatypes/LuaUDim.h"
+#include "datatypes/LuaVector2.h"
 
 #include "objects/GuiObject.h"
 #include "objects/Instance.h"
 #include "objects/Part.h"
 #include "objects/ScreenGui.h"
-#include "raylib.h"
-#include "raymath.h"
-#include "services/Workspace.h"
+
 #include "services/Lighting.h"
 #include "services/StarterGui.h"
+#include "services/Workspace.h"
 
-#include "utils/VecMath.h"
 #include "utils/ExtraMath.h"
+#include "utils/VecMath.h"
 
 // config options
 
 static const float vMinRenderDistance = 0.05f;
 static const float vMaxRenderDistance = 50000.f;
 
-static const bool  vDoTexturePass = false;
+static const bool vDoTexturePass = false;
 
 // texture settings
 static const Vector2 textureScale = {1.0f, 1.0f};
@@ -39,9 +39,9 @@ static const float vOutlineStrength = 0.f;
 
 // end config options
 
-extern Workspace* gWorkspace;
-extern Lighting* gLighting;
-extern StarterGui* gStarterGui;
+extern Workspace *gWorkspace;
+extern Lighting *gLighting;
+extern StarterGui *gStarterGui;
 
 bool rendererReady = false;
 static RenderTexture shadowMap;
@@ -55,21 +55,20 @@ static Texture partTexture;
 
 // helpers gui
 
-static Vector2 ComputeAbsoluteSize(const LuaUDim2& size, const Vector2& parentSize) {
-    return {
-        size.x.scale * parentSize.x + size.x.offset,
-        size.y.scale * parentSize.y + size.y.offset
-    };
+static Vector2 ComputeAbsoluteSize(const LuaUDim2 &size, const Vector2 &parentSize) {
+	return {
+		size.x.scale * parentSize.x + size.x.offset,
+		size.y.scale * parentSize.y + size.y.offset};
 }
 
-static Vector2 ComputeAbsolutePosition(const LuaUDim2& pos,const Vector2& parentSize,const Vector2& absSize,const LuaVector2& anchor) {
-    Vector2 p = {pos.x.scale * parentSize.x + pos.x.offset, pos.y.scale * parentSize.y + pos.y.offset};
+static Vector2 ComputeAbsolutePosition(const LuaUDim2 &pos, const Vector2 &parentSize, const Vector2 &absSize, const LuaVector2 &anchor) {
+	Vector2 p = {pos.x.scale * parentSize.x + pos.x.offset, pos.y.scale * parentSize.y + pos.y.offset};
 
-    // Apply anchor
-    p.x -= absSize.x * anchor.x;
-    p.y -= absSize.y * anchor.y;
+	// Apply anchor
+	p.x -= absSize.x * anchor.x;
+	p.y -= absSize.y * anchor.y;
 
-    return p;
+	return p;
 }
 
 // helpers rendering
@@ -110,40 +109,41 @@ void UnreadyRenderer() {
 	UnloadMesh(meshCube);
 	UnloadMesh(meshBall);
 	UnloadMesh(meshCylinder);
-	//UnloadMaterial(material);
-	if (gBasicShader.id) UnloadShader(gBasicShader);
+	if (IsMaterialValid(material)) UnloadMaterial(material);
+	//if (IsShaderValid(gBasicShader)) UnloadShader(gBasicShader);
 }
 
 void EnsureRendererIsReady() {
-	if (!rendererReady) ReadyRenderer();
+	if (!rendererReady) 
+		ReadyRenderer();
 }
 
 bool RenderingIsTexturePass = false;
-void RenderInstance(Instance* inst) {
-    if (Part* part = dynamic_cast<Part*>(inst)) {
-        Matrix transform = MatrixScale(
-            part->Size.x,
-            part->Size.y,
-            part->Size.z
-        );
+void RenderInstance(Instance *inst) {
+	if (Part *part = dynamic_cast<Part *>(inst)) {
+		Matrix transform = MatrixScale(
+			part->Size.x,
+			part->Size.y,
+			part->Size.z
+		);
 
-        transform = MatrixMultiply(
-            transform,
-            MatrixRotateXYZ((Vector3){
-                part->Rotation.x * DEG2RAD,
-                part->Rotation.y * DEG2RAD,
-                part->Rotation.z * DEG2RAD
-            })
-        );
+		transform = MatrixMultiply(
+			transform,
+			MatrixRotateXYZ((Vector3){
+				part->Rotation.x * DEG2RAD,
+				part->Rotation.y * DEG2RAD,
+				part->Rotation.z * DEG2RAD}
+			)
+		);
 
-        transform = MatrixMultiply(
-            transform,
-            MatrixTranslate(
-                part->Position.x,
-                part->Position.y,
-                part->Position.z
-            )
-        );
+		transform = MatrixMultiply(
+			transform,
+			MatrixTranslate(
+				part->Position.x,
+				part->Position.y,
+				part->Position.z
+			)
+		);
 
 		if (RenderingIsTexturePass) {
 			Vector3 partSize = Vector3Scale(part->Size, 1);
@@ -152,10 +152,9 @@ void RenderInstance(Instance* inst) {
 		} else {
 			material.maps[MATERIAL_MAP_ALBEDO].color = part->color;
 			Vector3 color = {
-				static_cast<float>(part->color.r)/255.0f,
-				static_cast<float>(part->color.g)/255.0f,
-				static_cast<float>(part->color.b)/255.0f
-			};
+				static_cast<float>(part->color.r) / 255.0f,
+				static_cast<float>(part->color.g) / 255.0f,
+				static_cast<float>(part->color.b) / 255.0f};
 
 			SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "albedoColor"), &color, SHADER_UNIFORM_VEC3);
 		}
@@ -169,30 +168,30 @@ void RenderInstance(Instance* inst) {
 		}
 	}
 
-	for (Instance* child : inst->Children) {
+	for (Instance *child : inst->Children) {
 		RenderInstance(child);
 	}
 }
 
 void RenderWorkspace() {
 	Vector3 sunDir = SunDirFromClock(gLighting->ClockTime);
-	Vector3 lightColor = { 1.0f, 1.0f, 1.0f };
+	Vector3 lightColor = {1.0f, 1.0f, 1.0f};
 	Vector3 ambient = {0.5f, 0.5f, 0.5f};
 
 	Matrix lightView = MatrixLookAt(Vector3Scale(sunDir, -20.f), Vector3Zero(), {0, 1, 0});
 	Matrix lightProjection = MatrixOrtho(-20, 20, -20, 20, 1.f, 100.f);
 	Matrix lightSpaceMatrix = MatrixMultiply(lightProjection, lightView);
-	
+
 	// Color pass
 	material.shader = gBasicShader;
 
 	RenderingIsTexturePass = false;
 	BeginShaderMode(gBasicShader);
-		SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "lightDir"), &sunDir, SHADER_UNIFORM_VEC3);
-		SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "lightColor"), &lightColor, SHADER_UNIFORM_VEC3);
-		SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "ambientColor"), &ambient, SHADER_UNIFORM_VEC3);
+	SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "lightDir"), &sunDir, SHADER_UNIFORM_VEC3);
+	SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "lightColor"), &lightColor, SHADER_UNIFORM_VEC3);
+	SetShaderValue(gBasicShader, GetShaderLocation(gBasicShader, "ambientColor"), &ambient, SHADER_UNIFORM_VEC3);
 
-		RenderInstance(gWorkspace);
+	RenderInstance(gWorkspace);
 	EndShaderMode();
 
 	// Texture pass
@@ -202,31 +201,30 @@ void RenderWorkspace() {
 
 		RenderingIsTexturePass = true;
 		BeginShaderMode(gTextureShader);
-			SetShaderValueTexture(gTextureShader, GetShaderLocation(gTextureShader, "texture0"), partTexture);
-			SetShaderValue(gTextureShader, GetShaderLocation(gTextureShader, "tileCount"), &textureScale, SHADER_UNIFORM_VEC2);
-			RenderInstance(gWorkspace);
+		SetShaderValueTexture(gTextureShader, GetShaderLocation(gTextureShader, "texture0"), partTexture);
+		SetShaderValue(gTextureShader, GetShaderLocation(gTextureShader, "tileCount"), &textureScale, SHADER_UNIFORM_VEC2);
+		RenderInstance(gWorkspace);
 		EndShaderMode();
 	}
 }
 
-void RenderGuiObject(GuiObject* object, const Vector2& parentPos, const Vector2& parentSize) {
-	if (!object->Visible) return;
+void RenderGuiObject(GuiObject *object, const Vector2 &parentPos, const Vector2 &parentSize) {
+	if (!object->Visible)
+		return;
 
 	Vector2 absSize = ComputeAbsoluteSize(object->Size, parentSize);
-	Vector2 absPos  = ComputeAbsolutePosition(object->Position, parentSize, absSize, object->AnchorPoint);
+	Vector2 absPos = ComputeAbsolutePosition(object->Position, parentSize, absSize, object->AnchorPoint);
 
 	Vector2 drawPos = {
 		parentPos.x + absPos.x,
-		parentPos.y + absPos.y
-	};
+		parentPos.y + absPos.y};
 
 	float alpha = 1.0f - object->BackgroundTransparency;
 	Color color = {
 		(unsigned char)(object->BackgroundColor.x * 255),
 		(unsigned char)(object->BackgroundColor.y * 255),
 		(unsigned char)(object->BackgroundColor.z * 255),
-		(unsigned char)(alpha * 255)
-	};
+		(unsigned char)(alpha * 255)};
 
 	Rectangle drawRectangle = {
 		drawPos.x,
@@ -238,34 +236,34 @@ void RenderGuiObject(GuiObject* object, const Vector2& parentPos, const Vector2&
 	object->Draw(drawRectangle, color);
 
 	// Render children
-	for (Instance* childInst : object->Children) {
-		GuiObject* child = dynamic_cast<GuiObject*>(childInst);
+	for (Instance *childInst : object->Children) {
+		GuiObject *child = dynamic_cast<GuiObject *>(childInst);
 		if (child && child->Visible) {
 			RenderGuiObject(child, drawPos, absSize);
 		}
 	}
 }
 
-void RenderScreenGui(ScreenGui* screenGui) {
-    int screenW = GetScreenWidth();
-    int screenH = GetScreenHeight();
+void RenderScreenGui(ScreenGui *screenGui) {
+	int screenW = GetScreenWidth();
+	int screenH = GetScreenHeight();
 
-    Vector2 rootPos  = { 0, 0 };
-    Vector2 rootSize = { (float)screenW, (float)screenH };
+	Vector2 rootPos = {0, 0};
+	Vector2 rootSize = {(float)screenW, (float)screenH};
 
-    for (Instance* inst : screenGui->Children) {
-        GuiObject* obj = dynamic_cast<GuiObject*>(inst);
-        if (obj && obj->Visible) {
-            RenderGuiObject(obj, rootPos, rootSize);
-        }
-    }
+	for (Instance *inst : screenGui->Children) {
+		GuiObject *obj = dynamic_cast<GuiObject *>(inst);
+		if (obj && obj->Visible) {
+			RenderGuiObject(obj, rootPos, rootSize);
+		}
+	}
 }
 
 void RenderGui() {
-    for (Instance* inst : gStarterGui->Children) {
-        ScreenGui* gui = dynamic_cast<ScreenGui*>(inst);
-        if (gui && gui->Enabled) {
-            RenderScreenGui(gui);
-        }
-    }
+	for (Instance *inst : gStarterGui->Children) {
+		ScreenGui *gui = dynamic_cast<ScreenGui *>(inst);
+		if (gui && gui->Enabled) {
+			RenderScreenGui(gui);
+		}
+	}
 }

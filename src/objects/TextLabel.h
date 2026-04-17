@@ -9,9 +9,8 @@
 
 #include "lua.h"
 #include "lualib.h"
-#include <cstdio>
 
-struct TextLabel : GuiObject {
+struct TextLabel : public Cloneable<TextLabel, GuiObject> {
 	std::string Name = "TextLabel";
 	std::string Text = "TextLabel";
 	LuaColor3 TextColor{0, 0, 0};
@@ -19,10 +18,10 @@ struct TextLabel : GuiObject {
 	float TextSize = 20;
 
 	const char* ClassName() const override {
-        return "TextLabel";
-    }
+		return "TextLabel";
+	}
 
-	bool LuaGet(lua_State* L, const char* key) override {
+	bool LuaGet(lua_State *L, const char *key) override {
 		if (std::strcmp(key, "Text") == 0) {
 			lua_pushstring(L, Text.data());
 			return true;
@@ -46,7 +45,7 @@ struct TextLabel : GuiObject {
 		return GuiObject::LuaGet(L, key);
 	}
 
-	bool LuaSet(lua_State* L, const char* key, int valueIndex) override {
+	bool LuaSet(lua_State *L, const char *key, int valueIndex) override {
 		if (std::strcmp(key, "Text") == 0) {
 			Text = luaL_checkstring(L, valueIndex);
 			return true;
@@ -71,41 +70,25 @@ struct TextLabel : GuiObject {
 	}
 
 	void Draw(Rectangle rect, Color color) override {
-		rect.x += rect.width*0.5f;
-		rect.y += rect.height*0.5f;
+		rect.x += rect.width * 0.5f;
+		rect.y += rect.height * 0.5f;
 
-		Vector2 position = {rect.x, rect.y};
-		Vector2 origin = {rect.width*0.5f, rect.height*0.5f};
-
-		DrawRectanglePro(rect, origin, Rotation, color);
+		Vector2 origin = {rect.width * 0.5f, rect.height * 0.5f};
+		GuiObject::Draw(rect, color);
 
 		Font font = GetFontDefault();
-	    float spacing = 1.0f;
+		float spacing = 1.0f;
 
-	    Vector2 textSize = MeasureTextEx(
-	        font,
-	        Text.c_str(),
-	        (float)TextSize,
-	        spacing
-	    );
+		Vector2 textSize = MeasureTextEx(font, Text.c_str(), (float)TextSize, spacing);
+		Vector2 localPos = {(rect.width - textSize.x) * 0.5f, (rect.height - textSize.y) * 0.5f};
 
-	    Vector2 localPos = {(rect.width - textSize.x) * 0.5f, (rect.height - textSize.y) * 0.5f };
+		Vector2 center = {rect.x + rect.width * 0.5f, rect.y + rect.height * 0.5f};
+		Vector2 textPos = {rect.x + localPos.x, rect.y + localPos.y};
+		Vector2 textOrigin = {textSize.x / 2, textSize.y / 2};
 
-	    Vector2 center = {
-	        rect.x + rect.width * 0.5f,
-	        rect.y + rect.height * 0.5f
-	    };
+		Color textCol = RaylibColorFromLuauColor3(TextColor);
+		textCol.a = (unsigned char)(255 * (1.0f - TextTransparency));
 
-	    Vector2 textPos = {
-	        rect.x + localPos.x,
-	        rect.y + localPos.y
-	    };
-
-		Vector2 textOrigin = {textSize.x / 2, textSize.y/2};
-
-	    Color textCol = RaylibColorFromLuauColor3(TextColor);
-	    textCol.a = (unsigned char)(255 * (1.0f - TextTransparency));
-
-	    DrawTextPro(font, Text.c_str(), textPos, origin, Rotation, (float)TextSize, spacing, textCol);
+		DrawTextPro(font, Text.c_str(), textPos, origin, Rotation, (float)TextSize, spacing, textCol);
 	}
 };

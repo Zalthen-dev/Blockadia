@@ -1,3 +1,15 @@
+# 4/16/2026
+
+Fixed `Random:NextNumber` and`Random:NextInteger` methods from only producing one number
+Added `Random:Clone()` and `Random:Shuffle()`
+
+Added
+- Axes library
+- `Instance:Clone()`
+	- Note that all base classes (like `GuiObject`) don't have this method
+	- Just the exposed classes (like `Frame`) do have this method
+- `UICorner`
+
 # 4/15/2026
 
 Added link to Discord Server to the README

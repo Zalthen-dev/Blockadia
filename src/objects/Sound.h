@@ -8,7 +8,7 @@
 
 // name has to be different since raylib defines its own "Sound" struct
 
-struct ObjectSound : Instance {
+struct ObjectSound : public Cloneable<ObjectSound, Instance> {
 	std::string Name = "Sound";
 	std::string SoundId = "";
 
@@ -18,8 +18,8 @@ struct ObjectSound : Instance {
 	float Volume = 0.5f;
 
 	bool IsLoaded = false;
-	//bool IsPaused = false;
-	//bool IsPlaying = false;
+	// bool IsPaused = false;
+	// bool IsPlaying = false;
 	bool Looped = false;
 
 	ObjectSound() {
@@ -28,8 +28,8 @@ struct ObjectSound : Instance {
 	}
 
 	const char* ClassName() const override {
-        return "Sound";
-    }
+		return "Sound";
+	}
 
 	void Update() {
 		UpdateMusicStream(music);
@@ -63,51 +63,39 @@ struct ObjectSound : Instance {
 		}
 	}
 
-	static int l_Play(lua_State* L) {
-		ObjectSound* self = *(ObjectSound**)luaL_checkudata(L, 1, "Instance");
-		if (!self) {
-			return 0;
-		}
-
-		self->Play();
+	static int l_Play(lua_State *L) {
+		ObjectSound *self = *(ObjectSound **)luaL_checkudata(L, 1, "Instance");
+		if (!self) return 0;
 		
+		self->Play();
 		return 0;
 	}
 
-	static int l_Stop(lua_State* L) {
-		ObjectSound* self = *(ObjectSound**)luaL_checkudata(L, 1, "Instance");
-		if (!self) {
-			return 0;
-		}
+	static int l_Stop(lua_State *L) {
+		ObjectSound *self = *(ObjectSound **)luaL_checkudata(L, 1, "Instance");
+		if (!self) return 0;
 
 		self->Stop();
-
 		return 0;
 	}
 
-	static int l_Pause(lua_State* L) {
-		ObjectSound* self = *(ObjectSound**)luaL_checkudata(L, 1, "Instance");
-		if (!self) {
-			return 0;
-		}
-
+	static int l_Pause(lua_State *L) {
+		ObjectSound *self = *(ObjectSound **)luaL_checkudata(L, 1, "Instance");
+		if (!self) return 0;
+		
 		self->Pause();
-
 		return 0;
 	}
 
-	static int l_Resume(lua_State* L) {
-		ObjectSound* self = *(ObjectSound**)luaL_checkudata(L, 1, "Instance");
-		if (!self) {
-			return 0;
-		}
-
+	static int l_Resume(lua_State *L) {
+		ObjectSound *self = *(ObjectSound **)luaL_checkudata(L, 1, "Instance");
+		if (!self) return 0;
+		
 		self->Resume();
-
 		return 0;
 	}
 
-	bool LuaGet(lua_State* L, const char* key) override {
+	bool LuaGet(lua_State *L, const char *key) override {
 
 		// functions
 		if (std::strcmp(key, "Play") == 0) {
@@ -176,7 +164,7 @@ struct ObjectSound : Instance {
 			} else {
 				lua_pushnumber(L, 0.0);
 			}
-			
+
 			return true;
 		}
 
@@ -192,8 +180,8 @@ struct ObjectSound : Instance {
 
 		return Instance::LuaGet(L, key);
 	}
-	
-	bool LuaSet(lua_State* L, const char* key, int valueIndex) override {
+
+	bool LuaSet(lua_State *L, const char *key, int valueIndex) override {
 		if (std::strcmp(key, "SoundId") == 0) {
 			SoundId = luaL_checkstring(L, valueIndex);
 
@@ -221,7 +209,7 @@ struct ObjectSound : Instance {
 			if (IsLoaded && IsMusicValid(music)) {
 				SetMusicPitch(music, PlaybackSpeed);
 			}
-			
+
 			return true;
 		}
 

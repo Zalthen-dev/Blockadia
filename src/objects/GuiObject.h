@@ -1,56 +1,63 @@
 #pragma once
 
 #include "Instance.h"
+
 #include "lua.h"
 #include "lualib.h"
+
+#include "UICorner.h"
 
 #include "datatypes/LuaUDim.h"
 #include "datatypes/LuaVector2.h"
 #include "datatypes/LuaColor3.h"
 
+#include "raylib.h"
+#include "utils/rayutils.h"
+#include <algorithm>
+
 struct GuiObject : Instance {
 	std::string name = "GuiObject";
 
-    LuaUDim2 Size;
-    LuaUDim2 Position;
+	LuaUDim2 Size;
+	LuaUDim2 Position;
 
-    LuaVector2 AnchorPoint{0, 0};
+	LuaVector2 AnchorPoint{0, 0};
 
-    Vector3 BackgroundColor{1, 1, 1};
-    float BackgroundTransparency{0.0f};
+	Vector3 BackgroundColor{1, 1, 1};
+	float BackgroundTransparency{0.0f};
 	float Rotation{0.f};
 
-    bool Visible{true};
+	bool Visible{true};
 
-    const char* ClassName() const override {
-        return "GuiObject";
-    }
+	const char *ClassName() const override {
+		return "GuiObject";
+	}
 
-    GuiObject() {
-        Size = { {0,0}, {0,0} };
-        Position = { {0,0}, {0,0} };
-    }
+	GuiObject() {
+		Size = {{0, 0}, {0, 0}};
+		Position = {{0, 0}, {0, 0}};
+	}
 
-	bool LuaGet(lua_State* L, const char* key) override {
+	bool LuaGet(lua_State *L, const char *key) override {
 		if (!strcmp(key, "Size")) {
 			PushUDim2(L, Size.x, Size.y);
 			return true;
 		}
 
 		if (!strcmp(key, "Position")) {
-		    PushUDim2(L, Position.x, Position.y);
-		    return true;
+			PushUDim2(L, Position.x, Position.y);
+			return true;
 		}
 
 		if (!strcmp(key, "AnchorPoint")) {
-		    PushVector2(L, AnchorPoint.x, AnchorPoint.y);
-		    return true;
+			PushVector2(L, AnchorPoint.x, AnchorPoint.y);
+			return true;
 		}
 
-	    if (!strcmp(key, "BackgroundColor3")) {
+		if (!strcmp(key, "BackgroundColor3")) {
 			PushColor3(L, BackgroundColor.x, BackgroundColor.y, BackgroundColor.z);
-	        return true;
-	    }
+			return true;
+		}
 
 		if (!strcmp(key, "BackgroundTransparency")) {
 			lua_pushnumber(L, BackgroundTransparency);
@@ -70,7 +77,7 @@ struct GuiObject : Instance {
 		return Instance::LuaGet(L, key);
 	}
 
-	bool LuaSet(lua_State* L, const char* key, int idx) override {
+	bool LuaSet(lua_State *L, const char *key, int idx) override {
 		if (!strcmp(key, "Size")) {
 			Size = *CheckUDim2(L, idx);
 			return true;
@@ -82,13 +89,13 @@ struct GuiObject : Instance {
 		}
 
 		if (!strcmp(key, "AnchorPoint")) {
-			auto* v = CheckVector2(L, idx);
-			AnchorPoint = { v->x, v->y };
+			auto *v = CheckVector2(L, idx);
+			AnchorPoint = {v->x, v->y};
 			return true;
 		}
 
 		if (!strcmp(key, "BackgroundColor3")) {
-			LuaColor3* clr = CheckColor3(L, idx);
+			LuaColor3 *clr = CheckColor3(L, idx);
 			BackgroundColor = {clr->r, clr->g, clr->b};
 
 			return true;
@@ -112,5 +119,27 @@ struct GuiObject : Instance {
 		return Instance::LuaSet(L, key, idx);
 	}
 
-	virtual void Draw(Rectangle rect, Color color) {}
+	virtual void Draw(Rectangle rect, Color color) {
+		rect.x += rect.width*0.5f;
+		rect.y += rect.height*0.5f;
+
+		float rounding = 0;
+		Instance* possibleCorner = this->FindFirstChildOfClass("UICorner");
+		if (possibleCorner) {
+			UICorner* corner = static_cast<UICorner*>(possibleCorner);
+			rounding = corner->CornerRadius.scale + (corner->CornerRadius.offset / (std::min(rect.width, rect.height)));
+		}
+
+		Rectangle drawRect = rect;
+		drawRect.x -= (rect.width * AnchorPoint.x);
+		drawRect.y -= (rect.height * AnchorPoint.y);
+
+		advDrawRoundedRotatedRectangle(
+			drawRect,
+			{this->AnchorPoint.x, this->AnchorPoint.y},
+			Rotation,
+			rounding,
+			color
+		);
+	}
 };

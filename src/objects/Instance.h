@@ -9,29 +9,30 @@
 #include "lualib.h"
 #include "luacode.h"
 
+
 struct Instance;
 static Instance* CheckInstance(lua_State* L, int index) {
-    return *(Instance**)luaL_checkudata(L, index, "Instance");
+	return *(Instance**)luaL_checkudata(L, index, "Instance");
 }
 
 static void PushInstance(lua_State* L, Instance* inst) {
-    Instance** udata = (Instance**)lua_newuserdata(L, sizeof(Instance*));
-    *udata = inst;
+	Instance** udata = (Instance**)lua_newuserdata(L, sizeof(Instance*));
+	*udata = inst;
 
-    luaL_getmetatable(L, "Instance");
-    lua_setmetatable(L, -2);
+	luaL_getmetatable(L, "Instance");
+	lua_setmetatable(L, -2);
 }
 
 struct Instance {
-    std::string Name = "Instance";
-    Instance* Parent = nullptr;
-    std::vector<Instance*> Children;
+	std::string Name = "Instance";
+	Instance* Parent = nullptr;
+	std::vector<Instance*> Children;
 
 	bool ParentingLocked = false;
 
-    virtual ~Instance() = default;
+	virtual ~Instance() = default;
 
-    virtual const char* ClassName() const {
+	virtual const char* ClassName() const {
 		return "Instance";
 	}
 
@@ -53,25 +54,53 @@ struct Instance {
 		return nullptr;
 	}
 
+	virtual Instance* CloneSelf() const {
+		return new Instance();
+	}
+
+	Instance* Clone() {
+		if (ParentingLocked) return nullptr;
+
+		Instance* cloned = CloneSelf();
+		if (!cloned) return nullptr;
+
+		for (Instance* child : Children) {
+			if (child->ParentingLocked) continue;
+
+			Instance* clonedChild = child->Clone();
+			if (clonedChild)
+				clonedChild->SetParent(cloned);
+		}
+
+		cloned->SetParent(nullptr);
+		return cloned;
+	}
+
+	static int l_Clone(lua_State* L) {
+		Instance* obj = CheckInstance(L, 1);
+		PushInstance(L, obj->Clone());
+		return 1;
+	}
+
 	static int l_GetChildren(lua_State* L) {
-    	Instance* obj = CheckInstance(L, 1);
+		Instance* obj = CheckInstance(L, 1);
 
-    	lua_newtable(L);
-    	int i = 1;
+		lua_newtable(L);
+		int i = 1;
 
-    	for (Instance* child : obj->Children) {
-        	PushInstance(L, child);
-        	lua_rawseti(L, -2, i++);
-    	}
+		for (Instance* child : obj->Children) {
+			PushInstance(L, child);
+			lua_rawseti(L, -2, i++);
+		}
 
-    	return 1;
+		return 1;
 	}
 
 	static int l_GetDescendants(lua_State* L) {
-	    Instance* obj = CheckInstance(L, 1);
+		Instance* obj = CheckInstance(L, 1);
 
-	    std::vector<Instance*> stack;
-	    std::vector<Instance*> descendants;
+		std::vector<Instance*> stack;
+		std::vector<Instance*> descendants;
 
 		for (Instance* child : obj->Children)
 			stack.push_back(child);
@@ -90,8 +119,8 @@ struct Instance {
 		lua_newtable(L);
 		int i = 1;
 		for (Instance* inst : descendants) {
-		    PushInstance(L, inst);
-		    lua_rawseti(L, -2, i++);
+			PushInstance(L, inst);
+			lua_rawseti(L, -2, i++);
 		}
 
 		return 1;
@@ -112,9 +141,14 @@ struct Instance {
 		return 1;
 	}
 
-    virtual bool LuaGet(lua_State* L, const char* key) {
+	virtual bool LuaGet(lua_State* L, const char* key) {
 
 		// methods
+		if (std::strcmp(key, "Clone") == 0) {
+			lua_pushcfunction(L, l_Clone, "Clone");
+			return true;
+		}
+
 		if (std::strcmp(key, "GetChildren") == 0) {
 			lua_pushcfunction(L, l_GetChildren, "GetChildren");
 			return true;
@@ -131,23 +165,23 @@ struct Instance {
 		}
 
 		// properties
-        if (std::strcmp(key, "Name") == 0) {
-            lua_pushstring(L, Name.c_str());
-            return true;
-        }
+		if (std::strcmp(key, "Name") == 0) {
+			lua_pushstring(L, Name.c_str());
+			return true;
+		}
 
-        if (std::strcmp(key, "Parent") == 0){
-            if (Parent)
-                PushInstance(L, Parent);
-            else
-                lua_pushnil(L);
-            return true;
-        }
+		if (std::strcmp(key, "Parent") == 0){
+			if (Parent)
+				PushInstance(L, Parent);
+			else
+				lua_pushnil(L);
+			return true;
+		}
 
-        if (std::strcmp(key, "ClassName") == 0) {
-            lua_pushstring(L, ClassName());
-            return true;
-        }
+		if (std::strcmp(key, "ClassName") == 0) {
+			lua_pushstring(L, ClassName());
+			return true;
+		}
 
 		// getting instance
 		Instance* childInstance = FindFirstChild(key);
@@ -156,50 +190,50 @@ struct Instance {
 			return true;
 		}
 
-        return false;
-    }
+		return false;
+	}
 
-    virtual bool LuaSet(lua_State* L, const char* key, int valueIndex) {
-        if (strcmp(key, "Name") == 0) {
-            Name = luaL_checkstring(L, valueIndex);
-            return true;
-        }
+	virtual bool LuaSet(lua_State* L, const char* key, int valueIndex) {
+		if (strcmp(key, "Name") == 0) {
+			Name = luaL_checkstring(L, valueIndex);
+			return true;
+		}
 
-        if (strcmp(key, "Parent") == 0) {
+		if (strcmp(key, "Parent") == 0) {
 			if (ParentingLocked) {
 				luaL_error(L, "attempted to set parent of object whose parent is locked");
 				return false;
 			} else {
 				Instance* newParent = CheckInstance(L, valueIndex);
-            	SetParent(newParent);
+				SetParent(newParent);
 			}
-            
-            return true;
-        }
 
-        return false;
-    }
+			return true;
+		}
 
-    void SetParent(Instance* newParent) {
-		if (newParent == Parent) return;
-
-	    // Remove from old parent
-	    if (Parent) {
-	        auto& siblings = Parent->Children;
-	        siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
-	    }
-
-	    Parent = newParent;
-
-	    // Add to new parent
-	    if (Parent)
-	        Parent->Children.push_back(this);
+		return false;
 	}
 
-    virtual void Destroy() {
-        SetParent(nullptr);
-        delete this;
-    }
+	void SetParent(Instance* newParent) {
+		if (newParent == Parent) return;
+
+		// Remove from old parent
+		if (Parent) {
+			auto& siblings = Parent->Children;
+			siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+		}
+
+		Parent = newParent;
+
+		// Add to new parent
+		if (Parent)
+			Parent->Children.push_back(this);
+	}
+
+	virtual void Destroy() {
+		SetParent(nullptr);
+		delete this;
+	}
 
 	static int l_Destroy(lua_State* L) {
 		Instance* obj = CheckInstance(L, 1);
@@ -232,16 +266,22 @@ struct Instance {
 	}
 
 	static void SetupAPI(lua_State* L) {
-    	luaL_newmetatable(L, "Instance");
+		luaL_newmetatable(L, "Instance");
 		
-    	lua_pushcfunction(L, Index, "__index"); lua_setfield(L, -2, "__index");
-    	lua_pushcfunction(L, NewIndex, "__newindex"); lua_setfield(L, -2, "__newindex");
+		lua_pushcfunction(L, Index, "__index"); lua_setfield(L, -2, "__index");
+		lua_pushcfunction(L, NewIndex, "__newindex"); lua_setfield(L, -2, "__newindex");
 		//lua_pushcfunction(L, m_ToString, "__tostring"); lua_setfield(L, -2, "__tostring");
-
 		//lua_pushcfunction(L, l_GetChildren, "GetChildren"); lua_setfield(L, -2, "GetChildren");
 		//lua_pushcfunction(L, l_FindFirstChild, "FindFirstChild"); lua_setfield(L, -2, "FindFirstChild");
 		//lua_pushcfunction(L, l_Destroy, "Destroy"); lua_setfield(L, -2, "Destroy");
+		
+		lua_pop(L, 1);
+	}
+};
 
-    	lua_pop(L, 1);
+template<typename Derived, typename Base = Instance>
+struct Cloneable : public Base {
+	Instance* CloneSelf() const override {
+		return new Derived(*static_cast<const Derived*>(this));
 	}
 };
